@@ -1,4 +1,5 @@
-Running dig on the intergrated DNS service worked successfully despite the fact I never paid for data, but I could not access of the IPs.
+Running dig on the intergrated DNS service worked successfully despite the fact I never paid for data.
+When pinged I did not have access to the IPs through, so possibly a IPoverDNS solution could allow for free internet
 
 ➜  ~ dig @10.46.8.1 hampton.pw
 
@@ -50,7 +51,7 @@ From 172.29.2.58 icmp_seq=6 Destination Net Prohibited
 --- 104.18.57.108 ping statistics ---
 7 packets transmitted, 0 received, +6 errors, 100% packet loss, time 6006ms
 
-Traceroute to 1.1.1.1
+Running a traceroute, this is how the Newtec management ip of 10.46.8.1 was found
 ➜  ~ traceroute 1.1.1.1
 traceroute to 1.1.1.1 (1.1.1.1), 30 hops max, 60 byte packets
  1  ns.aireuropa-ontheair.com (172.19.248.1)  2.750 ms  2.865 ms  3.199 ms
