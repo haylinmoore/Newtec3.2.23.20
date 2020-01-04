@@ -1,0 +1,19 @@
+Modem state: 
+-----------
+summary_state: GREEN 
+general: STATE_STARTUP
+substate: SUB_STATE_NORMAL_OPER
+return technology : RETURN_TECH_HRC 
+rx_state: RX_STATE_OPER
+tx_state: TX_STATE_OPERATIONAL
+error_state: 0 (suberror=0)
+modem_error: No Error
+tx_synth_LO1_lock_state: 1
+tx_synth_LO2_lock_state: 1
+rx_demod_lock_state: 1
+network_name: BEAM_SES14MO12_S01_0072
+BER: 0
+C/N: 6.6 dB
+signal_strength: 45/100
+signal_strength_dbm: -33.0 dBm
+orbital_position: 47.5 west 

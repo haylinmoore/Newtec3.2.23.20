@@ -1,0 +1,323 @@
+#!/bin/sh
+
+split_sr() {
+        #9090000
+        # assumes non-empty argument
+        len=$(expr length $1)
+        tmpsrM=`expr "$1" / 1000000 `
+        tempD=`expr "$1" - "$tmpsrM" \* 1000000 `
+        lenD=$(expr length $tempD)
+        nrzeros=`expr 6 - "$lenD" `
+        zeros=0000000000
+        tmpsrD=$(expr substr "$zeros" 1 $nrzeros)"$tempD"
+}
+
+read_pt_config() {
+        activebeam=`/usr/local/bin/cliclient GetActiveBeam -g RequestData.ActiveBeamId`
+        ptpref=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.DefaultPointingCarrier`
+        ptgenmode=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier1.Carrier.TSMode`
+        ptfreq=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier1.Carrier.Freq`
+        ptpol=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier1.Carrier.Polarization`
+        ptsr=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier1.Carrier.SymbolRate`
+        proporbpos=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.OrbitalDegrees`
+        propweflag=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.Hemisphere`
+        proppolskew=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PolarizationSkew`
+        proplatvar=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.SatLatitudeVariance`
+        pt2genmode=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier2.Carrier.TSMode`
+        pt2freq=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier2.Carrier.Freq`
+        pt2pol=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier2.Carrier.Polarization`
+        pt2sr=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.PointingCarrier2.Carrier.SymbolRate`
+        mobgxtfile=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.GxtFileName`
+        mobbeamname=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.BeamName`
+        mobcost=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.Cost`
+        mobexclusionzones=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.ExclusionZones`
+        support_pol=1
+}
+
+read_cfg() {
+        ntcserial=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Hardware.SerialNumber`
+        ntccode=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Hardware.IdCode`
+        ntcversion=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Hardware.HardwareVersion`
+        ntchwid=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Hardware.HardwareId`
+        prod_plant=`grep "prod_plant" /var/state/cfg | sed -n "s/^prod_plant=\(.*\)$/\1/p" `
+        prod_serial=`grep "prod_serial" /var/state/cfg | sed -n "s/^prod_serial=\(.*\)$/\1/p" `
+        prod_date=`grep "prod_date" /var/state/cfg | sed -n "s/^prod_date=\(.*\)$/\1/p" `
+        ntcsigvalid=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Authentication.ConfigSignatureValid`
+        pkcertvalid=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Authentication.CertificateValid`
+        ethstate=`/usr/local/bin/cliclient GetDeviceStatus -g RequestData.Ethernet.State`
+        ethmsg=`/usr/local/bin/cliclient GetDeviceStatus -f RequestData.Ethernet.Message`
+        wifistate=`/usr/local/bin/cliclient GetDeviceStatus -g RequestData.Wi-Fi.State`
+        wifimsg=`/usr/local/bin/cliclient GetDeviceStatus -f RequestData.Wi-Fi.Message`
+        satstate=`/usr/local/bin/cliclient GetDeviceStatus -g RequestData.Satellite.State`
+        satmsg=`/usr/local/bin/cliclient GetDeviceStatus -f RequestData.Satellite.Message`
+        swstate=`/usr/local/bin/cliclient GetDeviceStatus -g RequestData.Software.State`
+        swmsg=`/usr/local/bin/cliclient GetDeviceStatus -f RequestData.Software.Message`
+        swdownloadmsg=`/usr/local/bin/cliclient GetDeviceStatus -f RequestData.Software.SWDownloadMessage`
+        demodstate=`/usr/local/bin/cliclient GetDeviceStatus -g RequestData.Demodulator.State`
+        demodmsg=`/usr/local/bin/cliclient GetDeviceStatus -f RequestData.Demodulator.Message`
+        swcurrent=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Software.CurrentVersion`
+}
+
+read_eth_config() {
+        ipaddr=`/usr/local/bin/cliclient GetEthernetInterfaceData -g RequestData.MgmtAddr.Address`
+        prefix=`/usr/local/bin/cliclient GetEthernetInterfaceData -g RequestData.MgmtAddr.Prefix`
+        ethaddr=`/usr/local/bin/cliclient GetEthernetInterfaceData -g RequestData.MAC`
+}
+
+read_air_config() {
+        airmac=`/usr/local/bin/cliclient GetAirMACAddress -g RequestData.AirMACAddress`
+        activebeam=`/usr/local/bin/cliclient GetActiveBeam -g RequestData.BeamId`
+        trppref=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.DefaultInitialCarrier`
+        trpgenmode=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier1.TSMode`
+        trpfreq=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier1.Freq`
+        trppol=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier1.Polarization`
+        trpsr=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier1.SymbolRate`
+        trppopid=`/usr/local/bin/cliclient GetCarrierSelectionData -g RequestData.PopulationId`
+        trp2genmode=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier2.TSMode`
+        trp2freq=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier2.Freq`
+        trp2pol=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier2.Polarization`
+        trp2sr=`/usr/local/bin/cliclient GetBeamData $activebeam -g RequestData.InitialCarrier2.SymbolRate`
+        support_pol=1
+}
+
+read_multicast_config() {
+        mcmode=`grep "mcmode" /var/state/cfg | sed -n "s/^mcmode=\(.*\)$/\1/p" `
+        mcipaddr0=`grep "mcipaddr0" /var/state/cfg | sed -n "s/^mcipaddr0=\(.*\)$/\1/p" `
+        mcipaddr1=`grep "mcipaddr1" /var/state/cfg | sed -n "s/^mcipaddr1=\(.*\)$/\1/p" `
+        mcipaddr2=`grep "mcipaddr2" /var/state/cfg | sed -n "s/^mcipaddr2=\(.*\)$/\1/p" `
+        mcipaddr3=`grep "mcipaddr3" /var/state/cfg | sed -n "s/^mcipaddr3=\(.*\)$/\1/p" `
+        mcipaddr4=`grep "mcipaddr4" /var/state/cfg | sed -n "s/^mcipaddr4=\(.*\)$/\1/p" `
+        mcipaddr5=`grep "mcipaddr5" /var/state/cfg | sed -n "s/^mcipaddr5=\(.*\)$/\1/p" `
+        mcipaddr6=`grep "mcipaddr6" /var/state/cfg | sed -n "s/^mcipaddr6=\(.*\)$/\1/p" `
+        mcipaddr7=`grep "mcipaddr7" /var/state/cfg | sed -n "s/^mcipaddr7=\(.*\)$/\1/p" `
+        mcipaddr8=`grep "mcipaddr8" /var/state/cfg | sed -n "s/^mcipaddr8=\(.*\)$/\1/p" `
+        mcipaddr9=`grep "mcipaddr9" /var/state/cfg | sed -n "s/^mcipaddr9=\(.*\)$/\1/p" `
+}
+
+read_terminal_capabilities() {
+        trpolcap=`/usr/local/bin/cliclient GetCapabilities -g RequestData.Capabilities.Polarization`
+        pwrcfgcap=`/usr/local/bin/cliclient GetCapabilities -g RequestData.Capabilities.PowerConfig`
+}
+
+
+read_cfg
+read_eth_config
+read_air_config
+read_pt_config
+read_multicast_config
+read_terminal_capabilities
+
+
+# Main
+echo "" #Put first newline : SMS-474
+echo "========================="
+echo " Terminal identification "
+echo "========================="
+echo "Air MAC address           : ${airmac}"
+echo "Hardware Id               : ${ntchwid}"
+echo "Serial number             : ${ntcserial}"
+if [ -n "$prod_plant" ]; then
+        echo "Production plant          : ${prod_plant}"
+fi
+if [ -n "$prod_serial" ]; then
+        echo "Production serial         : ${prod_serial}"
+fi
+if [ -n "$prod_date" ]; then
+        echo "Production date           : ${prod_date}"
+fi
+if [ -n "$ntcsigvalid" ]; then
+        echo "sig_verification          : ${ntcsigvalid}"
+fi
+if [ -n "$pkcertvalid" ]; then
+        echo "pkcert                    : ${pkcertvalid}"
+fi
+echo "Uptime                    :`uptime`"
+echo
+echo "================= "
+echo " Terminal Status "
+echo "================= "
+echo "Ethernet Interface State  : $ethstate"
+if [ -n "$ethmsg" ]; then
+        echo "Ethernet Interface Msg    : $ethmsg"
+fi
+
+echo "Wi-Fi Interface State     : $wifistate"
+if [ -n "$wifimsg" ]; then
+        echo "Wi-Fi Interface Msg       : $wifimsg"
+fi
+
+echo "Satellite Interface State : $satstate"
+if [ -n "$satmsg" ]; then
+        echo "Satellite Interface Msg   : $satmsg"
+fi
+echo "Software State            : $swstate"
+if [ -n "$swmsg" ]; then
+        echo "Software Msg              : $satmsg"
+fi
+if [ -n "$swdownloadmsg" ]; then
+        echo "Software Download Msg     : $swdownloadmsg"
+fi
+echo "Software Version          : ${swcurrent}"
+echo
+
+echo "======================="
+echo " Terminal Configuration"
+echo "======================="
+echo " 1. Ethernet "
+echo 
+echo "Eth MAC Address              : ${ethaddr} "
+echo "Management IP Address        : ${ipaddr}  "
+echo "Prefix                       : ${prefix}  "
+echo
+echo " 2. Satellite interface - Satellite properties"
+echo 
+echo "Polarization Skew            : $proppolskew"
+echo "Orbital Position             : $proporbpos  ${propweflag}"
+echo "Satellite Latitude Variance  : $proplatvar"
+echo 
+echo " 3. Satellite interface - Initial Receive transponders "
+echo 
+echo "Preferred transponder        : $trppref"
+echo "TRANSPONDER 1"
+echo "Transport Mode               : $trpgenmode"
+echo "Frequency                    : $trpfreq Hz "
+if [ "$support_pol" = 1 ]; then
+        pol=""
+        if [ "$trppol" = 1 ]; then
+                pol="Vertical"
+        elif [ "$trppol" = 0 ]; then
+                pol="Horizontal"
+        fi
+        echo "Polarization                 : $pol "
+fi
+split_sr "$trpsr"
+trpsrM="$tmpsrM"
+trpsrD="$tmpsrD"
+echo "Symbol Rate                  : ${trpsrM}.${trpsrD} Mbaud "
+
+echo "Population ID                : ${trppopid}"
+echo
+echo "TRANSPONDER 2"
+echo "Transport Mode               : $trp2genmode"
+echo "Frequency                    : $trp2freq Hz "
+if [ "$support_pol" = 1 ]; then
+        pol=""
+        if [ "$trp2pol" = 1 ]; then
+                pol="Vertical"
+        elif [ "$trp2pol" = 0 ]; then
+                pol="Horizontal"
+        fi
+        echo "Polarization                 : $pol "
+fi
+split_sr "$trp2sr"
+trp2srM="$tmpsrM"
+trp2srD="$tmpsrD"
+echo "Symbol Rate                  : ${trp2srM}.${trp2srD} Mbaud "
+
+echo
+if [ "$have_pointing" = "true" ]; then
+        
+        echo " 4. Satellite interface - Pointing Transponders "
+        echo 
+        echo "Default transponder          : $ptpref"
+        echo "POINTING TRANSPONDER 1"
+        echo "Transport Mode               : $ptgenmode"
+        echo "Frequency                    : $ptfreq Hz"
+        if [ "$support_pol" = 1 ]; then
+                pol=""
+                if [ "$ptpol" = 1 ]; then
+                        pol="Vertical"
+                elif [ "$ptpol" = 0 ]; then
+                        pol="Horizontal"
+                fi
+                echo "Polarization                 : $pol "
+        fi
+        split_sr "$ptsr"
+        ptsrM="$tmpsrM"
+        ptsrD="$tmpsrD"
+        echo "Symbol Rate                  : ${ptsrM}.${ptsrD} Mbaud"
+        
+        echo
+        echo "POINTING TRANSPONDER 2"
+        echo "Transport Mode               : $pt2genmode"
+        echo "Frequency                    : $pt2freq Hz"
+        if [ "$support_pol" = 1 ]; then
+                pol=""
+                if [ "$pt2pol" = 1 ]; then
+                        pol="Vertical"
+                elif [ "$pt2pol" = 0 ]; then
+                        pol="Horizontal"
+                fi
+                echo "Polarization                  : $pol "
+        fi
+        split_sr "$pt2sr"
+        pt2srM="$tmpsrM"
+        pt2srD="$tmpsrD"
+        echo "Symbol Rate                  : ${pt2srM}.${pt2srD} Mbaud"
+        
+        echo
+fi
+echo " 5. Satellite interface - Mobility data "
+echo 
+echo "GXT File                     : $mobgxtfile"
+echo "Beam Name                    : $mobbeamname"
+echo "Cost                         : $mobcost"
+echo "Exclusion zones              : $mobexclusionzones"
+echo 
+echo " 6. Multicast mode "
+echo 
+case "$mcmode" in
+        0)
+                lmcmode="Disabled"
+        ;;
+        1)
+                lmcmode="Static"
+        ;;
+        2)
+                lmcmode="IGMP Dynamic"
+        ;;
+        *)
+                lmcmode="Disabled"
+        ;;
+esac
+echo "Multicast Mode               : ${lmcmode}"
+if [ "$lmcmode" = "Static" ]; then
+        if [ -n "$mcipaddr0" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr0}"
+        fi
+        if [ -n "$mcipaddr1" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr1}"
+        fi
+        if [ -n "$mcipaddr2" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr2} "
+        fi
+        if [ -n "$mcipaddr3" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr3}"
+        fi
+        if [ -n "$mcipaddr4" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr4} "
+        fi
+        if [ -n "$mcipaddr5" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr5} "
+        fi
+        if [ -n "$mcipaddr6" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr6}"
+        fi
+        if [ -n "$mcipaddr7" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr7} "
+        fi
+        if [ -n "$mcipaddr8" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr8}"
+        fi
+        if [ -n "$mcipaddr9" ]; then
+                echo "Static Multicast IP Addr     : ${mcipaddr9} "
+        fi
+fi
+
+echo
+echo "======================="
+echo " Terminal Capabilities"
+echo "======================="
+echo "Polarization                 : ${trpolcap} "
+echo "Power Configuration          : ${pwrcfgcap}  "
+

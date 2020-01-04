@@ -1,0 +1,183 @@
++++++++++++++
++TEST REPORT+
++++++++++++++
+
+
+=========================
+ Terminal identification 
+=========================
+Air MAC address           : 00:0D:2E:00:04:94
+Hardware Id               : R5UG767Z
+Serial number             : 0
+Production plant          : NTC-EM
+Production serial         : 50042539
+Production date           : 20171208
+sig_verification          : true
+pkcert                    : true
+Uptime                    : 11:25:27 up 59 min, load average: 0.47, 0.38, 0.34
+
+================= 
+ Terminal Status 
+================= 
+Ethernet Interface State  : ok
+Ethernet Interface Msg    : Ok
+Wi-Fi Interface State     : error
+Wi-Fi Interface Msg       : Wi-Fi not supported
+Satellite Interface State : ok
+Satellite Interface Msg   : operational - HRC
+Software State            : ok
+Software Msg              : operational - HRC
+Software Version          : 3.2.23.20
+
+=======================
+ Terminal Configuration
+=======================
+ 1. Ethernet 
+
+Eth MAC Address              : 00:0D:2E:00:42:00 
+Management IP Address        : 192.168.1.1  
+Prefix                       : 24  
+
+ 2. Satellite interface - Satellite properties
+
+Polarization Skew            : 0.0
+Orbital Position             : 47.50  west
+Satellite Latitude Variance  : 1.0
+
+ 3. Satellite interface - Initial Receive transponders 
+
+Preferred transponder        : 1
+TRANSPONDER 1
+Transport Mode               : dvbs2_acm
+Frequency                    : 11103610000 Hz 
+Polarization                 : Horizontal 
+Symbol Rate                  : 24.476200 Mbaud 
+Population ID                : 1
+
+TRANSPONDER 2
+Transport Mode               : dvbs2_acm
+Frequency                    : 0 Hz 
+Polarization                 : Horizontal 
+Symbol Rate                  : 0.000000 Mbaud 
+
+ 5. Satellite interface - Mobility data 
+
+GXT File                     : 
+Beam Name                    : SES14_12
+Cost                         : 0.0
+Exclusion zones              : []
+
+ 6. Multicast mode 
+
+Multicast Mode               : Disabled
+
+=======================
+ Terminal Capabilities
+=======================
+Polarization                 : true 
+Power Configuration          : true  
+
+========================================
+The date is: Sat Jan 4 11:25:27 UTC 2020
+Test results:
+
+==========
+ Hardware
+==========
+
+ODU current measurement
+-----------------------
+
+This test was not executed yet.
+
+=====
+ LAN
+=====
+
+Ethernet status
+---------------
+
+This test was not executed yet.
+
+Number of TCP Sessions
+----------------------
+
+Test execution time: 2020-01-04 10:55:57
+Test result: success
+TCP Sessions: 24
+
+
+======================
+ Satellite connection
+======================
+
+Physical layer status
+---------------------
+
+Test execution time: 2020-01-04 10:55:57
+Test result: success
+Ok
+
+Data link layer status
+----------------------
+
+Test execution time: 2020-01-04 10:55:57
+Test result: success
+Ok
+
+Network layer status
+--------------------
+
+Test execution time: 2020-01-04 10:55:58
+Test result: success
+Ok
+
+==========
+ Software
+==========
+
+Software
+--------
+
+This test was not executed yet.
+
+=========
+ Traffic
+=========
+
+Ping traffic
+------------
+
+Test execution time: 2020-01-04 10:56:07
+Test result: success
+10 packets transmitted, 10 packets received, 0% packet loss
+round-trip min/avg/max = 571.561/575.051/582.440 ms
+
+
+DNS traffic
+-----------
+
+Test execution time: 2020-01-04 11:00:08
+Test result: failure
+VLAN337: failure
+VLAN338: failure
+VLAN343: failure
+VLAN349: failure
+VLAN366: failure
+VLAN367: failure
+
+
+HTTP get traffic
+----------------
+
+Test execution time: 2020-01-04 11:04:09
+Test result: failure
+VLAN337: failure
+VLAN338: failure
+VLAN343: failure
+VLAN349: failure
+VLAN366: failure
+VLAN367: failure
+
+
+

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Wrapper to the cgi client with the uncompressed flag
+./cgiclient -u

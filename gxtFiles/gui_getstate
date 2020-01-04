@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# split commands on newline delimiter, otherwise commands may be split on spaces
+oldifs=$IFS
+IFS='
+'
+for export_cmd_string in `/usr/local/bin/modem_controller_client -q getAllData $*`
+do
+        IFS=$oldifs
+        export "$export_cmd_string"
+done
+IFS=$oldifs

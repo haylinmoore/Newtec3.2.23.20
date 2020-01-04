@@ -1,0 +1,116 @@
+#!/bin/sh
+read_cfg() {
+        ntchwid=`sed -n "s/^ntchwid=\(.*\)$/\1/p" /var/state/cfg`
+        ntcserial=`sed -n "s/^ntcserial=\(.*\)$/\1/p" /var/state/cfg`
+        ntccode=`sed -n "s/^ntccode=\(.*\)$/\1/p" /var/state/cfg`
+        ntcpasswd=`sed -n "s/^ntcpasswd=\(.*\)$/\1/p" /var/state/cfg`
+}
+
+parse_request() {
+        if [ "$REQUEST_METHOD" = "POST" ]; then
+                if ! read -r request; then
+                        QUERY_STRING="$request"
+                fi
+        fi
+        quiet=$(expr match "$QUERY_STRING" '.*quiet=\([01]\)')
+        passwd=$(expr match "$QUERY_STRING" '.*passwd=\([0-9a-fA-F]*\)')
+        cmd=$(expr match "$QUERY_STRING" '.*cmd=\([^&]*\)')
+        if [ "$cmd" = "" ]; then
+                cmd=`httpd -d "$QUERY_STRING"`
+        else
+                cmd=`httpd -d "$cmd"`
+        fi
+        arg1=$(expr match "$QUERY_STRING" '.*arg1=\([^&]*\)')
+        if [ "$arg1" != "" ]; then
+                arg1=`httpd -d "$arg1"`
+        fi
+        arg2=$(expr match "$QUERY_STRING" '.*arg2=\([^&]*\)')
+        if [ "$arg2" != "" ]; then
+                arg2=`httpd -d "$arg2"`
+        fi
+        arg3=$(expr match "$QUERY_STRING" '.*arg3=\([^&]*\)')
+        if [ "$arg3" != "" ]; then
+                arg3=`httpd -d "$arg3"`
+        fi
+        arg4=$(expr match "$QUERY_STRING" '.*arg4=\([^&]*\)')
+        if [ "$arg4" != "" ]; then
+                arg4=`httpd -d "$arg4"`
+        fi
+        arg5=$(expr match "$QUERY_STRING" '.*arg5=\([^&]*\)')
+        if [ "$arg5" != "" ]; then
+                arg5=`httpd -d "$arg5"`
+        fi
+        arg6=$(expr match "$QUERY_STRING" '.*arg6=\([^&]*\)')
+        if [ "$arg6" != "" ]; then
+                arg6=`httpd -d "$arg6"`
+        fi
+        arg7=$(expr match "$QUERY_STRING" '.*arg7=\([^&]*\)')
+        if [ "$arg7" != "" ]; then
+                arg7=`httpd -d "$arg7"`
+        fi
+        arg8=$(expr match "$QUERY_STRING" '.*arg8=\([^&]*\)')
+        if [ "$arg8" != "" ]; then
+                arg8=`httpd -d "$arg8"`
+        fi
+        arg9=$(expr match "$QUERY_STRING" '.*arg9=\([^&]*\)')
+        if [ "$arg9" != "" ]; then
+                arg9=`httpd -d "$arg9"`
+        fi
+        
+}
+
+
+# Main
+parse_request
+. ./checkauth
+if [ "$quiet" != "1" ]; then
+        mode="debug"
+        export mode
+
+        echo "Content-type: text/html"
+        echo
+        echo "<body><html>"
+        if [ "$admin_mode" = 1 ]; then
+                echo " <h1>Command output: ${cmd} ${arg1} ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7} ${arg8} ${arg9}</h1>"
+        else
+                echo " <h1>Not Authorised!</h1>"
+        fi
+        
+        echo " <pre>"
+else
+        echo "Content-type: text/plain"
+        echo
+        if [ "$admin_mode" != 1 ]; then
+                read_cfg
+                if [ -n "$passwd" ]; then
+                        length=${#ntcpasswd}
+                        if [ "$length" = 16 -a "$ntcpasswd" = "$passwd" ]; then
+                                admin_mode=1
+                                elif [ "$length" = 32 ]; then
+                                checksum=`echo -n $passwd | md5sum | sed -n "s/\([0-9a-f]*\).*/\1/p" |  tr '[a-z]' '[A-Z]'`
+                                if [ "$ntcpasswd" = "$checksum" ]; then
+                                        admin_mode=1
+                                fi
+                        fi
+                else
+                        echo "Not authorised. Provide session cookie, password or login."
+                        echo "id: ${ntchwid}"
+                        echo "serial: ${ntcserial}"
+                        echo "idcode: ${ntccode}"
+                fi
+        fi
+fi
+if [ "$admin_mode" = 1 ]; then
+        /usr/local/bin/s3p ${cmd} ${arg1} ${arg2} ${arg3} ${arg4} ${arg5} ${arg6} ${arg7} ${arg8} ${arg9} 2>&1
+fi
+if [ "$quiet" != "1" ]; then
+        echo " </pre>"
+        if [ "$admin_mode" = 1 ]; then
+                echo
+        else
+                echo " <p>You must be logged in as the administrator to perform this function. </p>"
+        fi
+        
+        echo "</body></html>"
+fi
+exit 0

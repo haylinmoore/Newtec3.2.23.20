@@ -1,0 +1,72 @@
+#!/bin/sh
+
+parse_request() {
+        if [ "$REQUEST_METHOD" = "POST" ]; then
+                if ! read -r request; then
+                        QUERY_STRING="$request"
+                fi
+        fi
+        #  /usr/bin/logger -t www -p user.info "parse_request datafilt=${datafilt}"
+        filter=$(expr match "$QUERY_STRING" '.*filter=\([0-9]\)')
+        datafilt=$(expr match "$QUERY_STRING" '.*datafilt=\([0-9a-zA-Z]*\)')
+        if [ -z "$filter" ]; then
+                filter="0"
+        fi
+        last=$(expr match "$QUERY_STRING" '.*last=\([0-9]*\)')
+        if [ -z "$last" ]; then
+                last="0"
+        fi
+        # /usr/bin/logger -t www -p user.info "datafilt=${datafilt}"
+}
+
+
+# Main
+parse_request
+
+lcmd="/sbin/logread | sed 's/[Mm]onit/watchdog/g'"
+
+if [ "$filter" != 0 ]; then
+        facility="[a-z]*"
+        ident="[^ ]*"
+        if [ "$filter" = 9 ]; then
+                levels="[a-z]*"
+        else
+                levels="(emerg)"
+                if [ "$filter" -gt 1 ]; then
+                        levels="${levels}|(alert)"
+                fi
+                if [ "$filter" -gt 2 ]; then
+                        levels="${levels}|(crit)"
+                fi
+                if [ "$filter" -gt 3 ]; then
+                        levels="${levels}|(err)"
+                fi
+                if [ "$filter" -gt 4 ]; then
+                        levels="${levels}|(warn)"
+                fi
+                if [ "$filter" -gt 5 ]; then
+                        levels="${levels}|(notice)"
+                fi
+                if [ "$filter" -gt 6 ]; then
+                        levels="${levels}|(info)"
+                fi
+                if [ "$filter" -gt 7 ]; then
+                        levels="${levels}|(debug)"
+                fi
+        fi
+        #/usr/bin/logger -t www -p user.info "datafilt=${datafilt}"
+        
+        lcmd="${lcmd} | egrep \"^............... [^ ]* ${facility}\.(${levels}) (${datafilt})${ident}\""
+        if [ "$last" != 0 ]; then
+                lcmd="${lcmd} | tail -n ${last}"
+        fi
+fi
+if [ "$filter" != 0 ]; then
+        echo "Content-type: text/plain"
+        echo ""
+        eval "$lcmd" | sed 's/&/\&amp;/g' | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g'
+fi
+
+exit 0
+
+

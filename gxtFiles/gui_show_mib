@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "Content-Type: application/zip"
+echo 'Content-Disposition: attachment; filename="mibs.zip"'
+echo
+
+cd /usr/local/share/mibs
+zip -r /tmp/mibs.zip * > /dev/null
+
+cat /tmp/mibs.zip
+rm /tmp/mibs.zip
+
+exit 0

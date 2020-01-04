@@ -1,0 +1,4 @@
+#!/bin/sh
+
+source /usr/local/bin/test_make_report.include
+make_test_report()

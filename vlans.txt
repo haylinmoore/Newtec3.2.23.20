@@ -1,0 +1,9 @@
+
+Port(s)	VLAN Tag	Virtual Network	Gateway Address (IPv4)	Gateway Netmask (IPv4)	Gateway Address (IPv6)	Gateway Netmask (IPv6)	DHCP4 Enabled
+all	337	VLAN337	10.252.45.233	29	::	::	No
+all	338	VLAN338	10.63.45.233	29	::	::	No
+all	343	VLAN343	10.56.232.129	29	::	::	No
+all	349	VLAN349	10.46.8.1	29	::	::	No
+all	366	VLAN366	10.56.232.137	29	::	::	No
+all	367	VLAN367	10.2.45.233	29	::	::	No
+all				0			No

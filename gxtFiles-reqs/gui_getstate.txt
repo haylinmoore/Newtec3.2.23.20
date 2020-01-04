@@ -1,0 +1,1 @@
+gui_getstate: line 11: /usr/local/bin/modem_controller_client: not found

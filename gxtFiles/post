@@ -1,0 +1,2 @@
+# In the context of upload speed test, the upload test needs to be able to send 
+# a POST request to the web server and the receiving page doesn't have to do anything with the data.

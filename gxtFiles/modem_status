@@ -1,0 +1,24 @@
+#!/bin/sh
+parse_request() {
+        if [ "$REQUEST_METHOD" = "POST" ]; then
+                if ! read -r request; then
+                        QUERY_STRING="$request"
+                fi
+        fi
+        action="$QUERY_STRING"
+}
+
+
+# main
+echo "Content-type: text/html"
+echo
+
+parse_request
+if [ "$action" = "doreboot" ]; then
+    echo "<html><body><p1>Rebooting</p1></body></html>"
+    /usr/local/bin/cliclient Reboot > /dev/null
+else
+    echo "<html><body><p1>Unsupported action</p1></body></html>"
+fi
+
+exit 0

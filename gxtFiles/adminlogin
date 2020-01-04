@@ -1,0 +1,32 @@
+#!/bin/sh
+parse_request() {
+        if [ "$REQUEST_METHOD" = "POST" ]; then
+                if ! read -r request; then
+                        QUERY_STRING="$request"
+                fi
+        fi
+        passwd=$(expr match "$QUERY_STRING" '.*passwd=\([0-9a-fA-F]*\)')
+}
+
+# Main
+parse_request
+
+echo "Content-type: text/html"
+
+sessionid=`/usr/local/bin/cliclient AuthenticatePassword admin $passwd -g RequestData.SessionId` 2> /dev/null
+if [ -n "$sessionid" ]; then
+        echo "Set-Cookie: userSessionId=${sessionid}; path=/"
+        echo
+        echo '<html><title>Newtec Satellite Modem</title><body><p>Login successful.</p></body></html>'
+else
+        echo
+        echo '<html>'
+        echo '<head>'
+        echo '<meta http-equiv="refresh" content="0;url=/cgi-bin/index?login" />'
+        echo '<title>Newtec Satellite Modem</title>'
+        echo '</head>'
+        echo '<body></body>'
+        echo '</html>'
+fi
+
+exit 0

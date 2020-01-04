@@ -1,0 +1,104 @@
+#!/bin/sh
+
+read_cfg() {
+    httpfileaccess=`sed -n "s/^httpfileaccess=\(.*\)$/\1/p" /var/state/cfg`
+    ntcpasswd=`sed -n "s/^ntcpasswd=\(.*\)$/\1/p" /var/state/cfg`
+}
+
+parse_request() {
+    path=$(expr match "$QUERY_STRING" '.*path=\([^&]*\)')
+    if [ "$path" != "" ]; then
+        path=`/usr/sbin/httpd -d "$path"`
+    fi
+
+    passwd=$(expr match "$QUERY_STRING" '.*passwd=\([^&]*\)')
+    if [ "$passwd" != "" ]; then
+        passwd=`/usr/sbin/httpd -d "$passwd"`
+    fi
+}
+
+read_cfg
+if [ "$httpfileaccess" != 1 ]; then
+    echo 'Status: 404 Not found'
+    echo 'Content-type: text/html'
+    echo
+    echo '<HTML><HEAD><TITLE>404 Not Found</TITLE></HEAD>'
+    echo '<BODY><H1>404 Not Found</H1>'
+    echo 'The requested URL was not found'
+    echo '</BODY></HTML>'
+    exit 0
+fi
+
+parse_request
+. ./checkauth
+if [ "$admin_mode" != 1 ]; then
+    if [ -n "$passwd" ]; then
+        length=${#ntcpasswd}
+        if [ "$length" = 16 -a "$ntcpasswd" = "$passwd" ]; then
+            admin_mode=1
+        else
+            checksum=`echo -n $passwd | md5sum | sed -n "s/\([0-9a-f]*\).*/\1/p" |  tr '[a-z]' '[A-Z]'`
+            if [ "$ntcpasswd" = "$checksum" ]; then
+                admin_mode=1
+            fi
+        fi
+    fi
+fi
+
+if [ "$admin_mode" != 1 ]; then
+    echo 'Status: 401 Not authorised'
+    echo 'Content-type: text/html'
+    echo
+    echo '<HTML><HEAD><TITLE>401 Not Authorised</TITLE></HEAD>'
+    echo '<BODY><H1>401 Not Authorised</H1>'
+    echo 'Provide session cookie, password or login'
+    echo '</BODY></HTML>'
+    exit 0
+fi
+
+if [ ! -e "$path" ]; then
+    echo 'Status: 400 Path not found'
+    echo 'Content-type: text/html'
+    echo
+    echo '<HTML><HEAD><TITLE>400 Path Not Found</TITLE></HEAD>'
+    echo '<BODY><H1>400 Path Not Found</H1>'
+    echo 'Provide an existing path'
+    echo '</BODY></HTML>'
+    exit 0
+fi
+
+if [ -d "$path" ]; then
+    response=""
+    for item in "$path"/* "$path"/.[^.]* ; do
+        if [ "$item" != "$path/*" ] && [ "$item" != "$path/.[^.]*" ]; then
+            name=`basename "$item"`
+            if [ -d "$item" ]; then
+                is_directory="true"
+                size=0
+            else
+                is_directory="false"
+                size="$(wc -c < "$item")"
+            fi
+            last_modified=`date -r "$item" +%Y-%m-%dT%H:%M:%S`
+
+            if [ -n "$response" ]; then
+                response="${response},"
+            fi
+            response="${response}{\"Name\":\"${name}\",\"IsDirectory\":${is_directory},\"Size\":${size},\"LastModified\":\"${last_modified}\"}"
+        fi
+    done
+    response="{\"RequestData\":{\"Items\":[${response}]}}"
+
+    echo 'Status: 200 Success'
+    echo 'Content-Type: application/json'
+    echo 'Content-Encoding: gzip'
+    echo
+    echo "$response" | gzip -c
+else
+    echo 'Status: 200 Success'
+    echo 'Content-Type: application/octet-stream'
+    echo "Content-Disposition: attachment; filename=\"$(basename "$path")\""
+    echo 'Content-Encoding: gzip'
+    echo
+    cat "$path" | gzip -c
+fi

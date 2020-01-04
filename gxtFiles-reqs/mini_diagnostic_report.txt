@@ -1,0 +1,24 @@
+name: vno-1/AERO_AEA_EC-MPG_51470_DPA/sit_432012
+firmware_version: 3.2.23.20
+firmware_offical_version: V302.23
+buildhost: jenkins-slave16.build.eng-it.newtec.eu
+builddate: Fri May 18 07:54:55 UTC 2018
+kernel: linux-3.10-trunk
+TMS_config_version: 800619872
+pcilib: Cannot open /proc/bus/pci
+lspci: Cannot find any working access method.
+fpga_pci: 
+productid: R5UG767Z..
+UbootConfigId: 
+ntchwid: R5UG767Z
+ntcversion: 1
+ntcserial: 0
+ntccode: R8U1NB2504Z
+airmac: 00:0D:2E:00:04:94
+prod_plant: NTC-EM
+prod_date: 20171208
+prod_serial: 50042539
+sig_verification: ok
+pkcert: ok
+uptime: 3568.62
+date: Sat, 04 Jan 2020 11:25:49 UTC

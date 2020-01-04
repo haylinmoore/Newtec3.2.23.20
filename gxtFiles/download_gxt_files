@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "Content-Type: application/zip"
+echo 'Content-Disposition: attachment; filename="gxtFiles.zip"'
+echo
+
+cd /mnt/sd/gxt/
+zip -r /tmp/gxtFiles.zip *
+
+cat /tmp/gxtFiles.zip
+rm /tmp/gxtFiles.zip
+
+exit 0

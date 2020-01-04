@@ -1,0 +1,331 @@
+#!/bin/sh
+
+read_config() {
+  ntchwid=`sed -n "s/^ntchwid=\(.*\)$/\1/p" /var/state/cfg`
+  ntcserial=`sed -n "s/^ntcserial=\(.*\)$/\1/p" /var/state/cfg`
+  ntccode=`sed -n "s/^ntccode=\(.*\)$/\1/p" /var/state/cfg`
+  ntcpasswd=`sed -n "s/^ntcpasswd=\(.*\)$/\1/p" /var/state/cfg`
+  ntcversion=`sed -n "s/^ntcversion=\(.*\)$/\1/p" /var/state/cfg`
+  firmware_id=`sed -n "s/^firmware_id: \(.*\)$/\1/p" /etc/version`
+  firmware_nbr=`sed -n "s/^firmware_id: \(.*\)$/\1/p" /etc/version | cut -d "." -f 2`
+  config_id=`sed -n "s/^version_uboot_config=\(.*\)$/\1/p" /var/state/cfg`
+  config_nbr=`sed -n "s/^version_uboot_config=\(.*\)$/\1/p" /var/state/cfg | cut -d "." -f 2`
+  pcb_version=`sed -n "s/^pcbarev=\(.*\)\.\(.*\)$/\1/p" /var/state/cfg`
+  bom_version=`sed -n "s/^pcbarev=\(.*\)\.\(.*\)$/\2/p" /var/state/cfg`
+}
+
+echo "Content-type: text/plain"
+
+ . /var/www/cgi-bin/gui_short_diagnostic_report > /var/state/diag_report_ascii
+
+grep -v "Content-type: text/plain" /var/state/diag_report_ascii
+rm /var/state/diag_report_ascii
+echo
+echo "++++++++++++=========++++++++++++++++++++++ "
+echo "+  Extended TERMINAL  DIAGNOSTIC  REPORT  + "
+echo "+++++++++++++++++++++=========+++++++++++++ "
+echo
+echo "==================================="
+echo "1. Terminal Firmware + FPGA version"
+echo "==================================="
+read_config
+echo -n "name: "
+hostname
+cat /etc/version /var/state/acu_status 2>/dev/null
+
+config_version=`/usr/local/bin/cliclient GetTmsInformation -g RequestData.Version`
+if [ -n "$config_version" ]; then
+echo "TMS_config_version: ${config_version}"
+fi
+pci_info=`lspci -d 1172:`
+echo "fpga_pci: ${pci_info}"
+echo "productid: ${ntchwid}.${firmware_nbr}.${config_nbr}"
+echo "UbootConfigId: ${config_id}"
+echo "ntchwid: ${ntchwid}"
+echo "ntcversion: ${ntcversion}"
+echo "ntcserial: ${ntcserial}"
+echo "ntccode: ${ntccode}"
+echo "pcbversion: ${pcb_version}"
+echo "bomrevision: R${bom_version}"
+echo -n "uptime: "
+cut -d ' ' -f 1 /proc/uptime
+echo -n "date: "
+date -uR 
+cat /var/state/downloadreport 2>/dev/null
+echo
+echo "FPGA version info"
+/usr/local/bin/cliclient GetFPGAVersion -g RequestData | grep \" | sed 's/\"//g' | sed 's/^\t*//'
+echo
+bootloaderVersion=`/usr/local/bin/cliclient GetBootloaderVersion -g RequestData`
+if [ ! -z "$bootloaderVersion" ]; then
+    echo "Bootloader version"
+    echo "$bootloaderVersion"
+fi
+    
+echo
+
+echo "================================="
+echo "2. Terminal general status report "
+echo "================================= "
+/usr/local/bin/s3p getstate
+echo
+alarms=`/usr/local/bin/cliclient GetAlarms 0 -g RequestData.Alarms`
+if [ ! -z "alarms" ]; then
+     echo "Alarms: $alarms"
+     echo
+fi
+disabledModcods=`/usr/local/bin/cliclient GetDemodModCodConfiguration 2 | grep 'ModCod\|Status' | awk -F: '{ print $2 }' | sed 's/\"//g' |  tr ',' ':' | sed 'N;s/\n//' | grep -v Enabled`
+if [ ! -z "$disabledModcods" ]; then
+     echo "Disabled Oxford Modcods"
+     echo "$disabledModcods"
+     echo
+fi
+modemtype=`sed -n "s/^modemtype=\(.*\)/\1/p" /var/state/cfg`
+if [ "${modemtype}" -eq 11 ]; then
+     irq=$(/usr/local/bin/s3p hww_read_reg 0 0x520 | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+     if [ $(($irq > 0)) -ne 0 ]; then
+          echo "Error detected by Out-Of-Range checker: $irq"
+          if [ $((($irq & 0x1)>0)) -ne 0 ]; then
+               rxPath0=$(/usr/local/bin/s3p hww_read_reg 0 0x0008FFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in rx_path_0: $rxPath0"
+          fi
+          if [ $((($irq & 0x2)>0)) -ne 0 ]; then
+               rxPath1=$(/usr/local/bin/s3p hww_read_reg 0 0x0009FFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in rx_path_1: $rxPath1"
+          fi
+          if [ $((($irq & 0x4)>0)) -ne 0 ]; then
+               rxPathst01=$(/usr/local/bin/s3p hww_read_reg 0 0x000CFFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in rx_path_st_0_1: $rxPathst01"
+          fi
+          if [ $((($irq & 0x8)>0)) -ne 0 ]; then
+               stoxfordif=$(/usr/local/bin/s3p hww_read_reg 0 0x0000FFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in st_oxford_if: $stoxfordif"
+          fi
+          if [ $((($irq & 0x10)>0)) -ne 0 ]; then
+               topqsys=$(/usr/local/bin/s3p hww_read_reg 0 0x01FFFFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in top_qsys: $topqsys"
+          fi
+          if [ $((($irq & 0x20)>0)) -ne 0 ];then
+               txpath0=$(/usr/local/bin/s3p hww_read_reg 0 0x001FFFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in tx_path_0: $txpath0"
+          fi
+          if [ $((($irq & 0x40)>0)) -ne 0 ]; then
+               wbd0=$(/usr/local/bin/s3p hww_read_reg 0 0x05FFFFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in wbd_0: $wbd0"
+          fi
+          if [ $((($irq & 0x80)>0)) -ne 0 ]; then
+               wbd1=$(/usr/local/bin/s3p hww_read_reg 0 0x03FFFFFC | sed -n "s/^bank 0, offset=0x[0-9a-f]*  : \(0x[0-9a-f]*\)/\1/p")
+               echo " Error in wbd_1: $wbd1"
+          fi
+     else
+          echo "Out-Of-Range check OK"
+     fi
+     echo
+fi
+
+echo "==============================="
+echo "3. Internal modem driver states"
+echo "==============================="
+/usr/local/bin/s3p getmodemdata
+echo
+
+
+echo "==================================="
+echo "4. Layer 2 counters of modem driver"
+echo "==================================="
+/usr/local/bin/s3p getcounters
+echo
+
+echo "================================= "
+echo "5. Terminal initial configuration "
+echo "================================= "
+cat /var/state/cfg 2>/dev/null | grep -v passwd | grep -v x509_cert | grep -v term_priv
+echo
+
+echo "===================================== "
+echo "6. Terminal operational configuration "
+echo "===================================== "
+/usr/local/bin/cliclient GetLayer3Data -g RequestData.Layer3Data | grep -v "tellitec_key"
+echo
+
+echo "===================="
+echo "7. Running processes"
+echo "===================="
+processes=`ps aux`
+echo "$processes" | sed 's/[Mm]onit/watchdog/g'
+echo
+
+echo "======================="
+echo "8. Ethernet link status "
+echo "======================="
+/usr/sbin/mii-diag -v eth0
+echo
+
+echo "===================="
+echo "9. Memory usage info"
+echo "===================="
+cat /proc/meminfo 2>/dev/null
+echo
+
+echo "========================="
+echo "10. Network configuration"
+echo "========================="
+ echo "a. IP interface Addresses "
+ echo "------------------------- "
+ ip address
+ echo
+
+ echo "b. Multicast Addresses "
+ echo "---------------------- "
+ ip maddr show
+ echo
+
+ echo "c. Ethernet ARP Cache"
+ echo "---------------------"
+ cat /proc/net/arp
+ echo
+
+ echo "d. Policy-Based Routing"
+ echo "-----------------------"
+ ip rule
+ echo
+
+ echo "e. Network Link "
+ echo "--------------- "
+ ip link
+ echo
+
+ echo "f. IP routing"
+ echo "-------------"
+# echo "1. Table main "
+# ip route 
+# echo "2. Table 1 (Forwarding) "
+# ip route show table 1
+# echo "3. Table 2 (TelliNet TCP Acceleration) "
+# ip route show table 2
+# echo "4. Local "
+# ip route show table local
+# echo "5. Multicast Routing "
+# ip mroute show
+# echo
+ echo "1. Unicast routing "
+ ip -4 route show table all
+ ip -6 route show table all
+ echo "2. Multicast routing "
+ ip mroute show
+ echo
+
+ echo "g. IP tables"
+ echo "------------"
+ echo "1. Table FILTER "
+ /usr/sbin/iptables -L -n --line-numbers -t filter -v
+ echo
+ echo "2. Table MANGLE "
+ /usr/sbin/iptables -L -n --line-numbers -t mangle -v
+ echo
+ echo "3. Table NAT "
+ /usr/sbin/iptables -L -n --line-numbers -t nat -v
+ echo
+
+ echo "h. IP-6 tables"
+ echo "------------"
+ echo "1. Table FILTER "
+ /usr/sbin/ip6tables -L -n --line-numbers -t filter -v
+ echo
+ echo "2. Table MANGLE "
+ /usr/sbin/ip6tables -L -n --line-numbers -t mangle -v
+ echo
+
+ echo "i. ARP Tables"
+ echo "-------------"
+ /sbin/arptables -L -n -v
+ echo
+
+echo "================================="
+echo "11. Tellitec-client configuration"
+echo "================================="
+ echo "a. Tellinet client config "
+ echo "------------------------- "
+ echo
+ echo "--- net-client.ini ---"
+ cat /etc/net-client.ini 2>/dev/null | grep -v user_key
+ for ndfFile in /etc/tellishape_config/*.ndf; do
+   echo
+   echo "--- `basename $ndfFile` ---"
+   cat $ndfFile
+ done
+ echo
+
+ echo "b. Tellishape client config "
+ echo "--------------------------- "
+ echo "1. Server config "
+ cat /etc/tellishape_config/shape-server.ini 2>/dev/null
+ echo
+ echo "2. Shaping tree "
+ cat /etc/tellishape_config/Tellishape_1.sdf 2>/dev/null
+ echo
+
+echo "=============== "
+echo "12. DHCP leases "
+echo "=============== "
+cat /var/state/dnsmasq.leases 2>/dev/null
+echo
+
+echo "=========== "
+echo "13. HW Info "
+echo "=========== "
+echo
+temperatures=`/usr/local/bin/cliclient GetTemperatures | grep 'Name\|Value' | awk -F: '{ print $2 }' | sed 's/\"//g' |  tr ',' ':' | sed 'N;s/\n//'`
+if [ ! -z "$temperatures" ]; then
+     echo "Temperatures"
+     echo "$temperatures"
+     echo
+fi
+powerSupplyStatus=`/usr/local/bin/cliclient GetPowerSupplyStatus | grep 'Name\|Value' | awk -F: '{ print $2 }' | sed 's/\"//g' | tr ',' ':' | sed 'N;s/\n//'`
+if [ ! -z "$powerSupplyStatus" ]; then
+     echo "Power supply status"
+     echo "$powerSupplyStatus"
+     echo
+fi
+interfaceStatus=`/usr/local/bin/cliclient GetInterfaceStatus | grep 'Name\|Status' | awk -F: '{ print $2 }' | sed 's/\"//g' |  tr ',' ':' | sed 'N;s/\n//'`
+if [ ! -z "$interfaceStatus" ]; then
+     echo "Interface status"
+     echo "$interfaceStatus"
+     echo
+fi
+
+echo "====================="
+echo "14. Demod Mon Headers"
+echo "====================="
+/usr/local/bin/cliclient GetDemodMonitoringHeaders 1 -g RequestData.Headers | tr -d '\{\}\"' | sed 's/,*$//g'
+echo
+
+echo "====================="
+echo "15. Various Log Files"
+echo "====================="
+#use reverse sort order to get rotational log files in chronicle order
+for file in $(ls /tmp/logfiles/* /tmp/rip.txt /tmp/abort_log.txt 2>/dev/null |  sort -r)
+do
+ if [[ -f $file ]]; then
+  echo "$file:"
+  cat $file 2>/dev/null
+  echo
+ fi
+done
+
+echo "====================="
+echo "16. Terminal Log File"
+echo "====================="
+logread | sed 's/[Mm]onit/watchdog/g'
+
+routercontroller_supported=`sed -n 's/^routercontroller_supported=\([1]\)/\1/p' /var/state/cfg`
+if [  -n "$routercontroller_supported"  ]; then
+rm -rf /tmp/report.log
+/usr/local/bin/cliclient RouterControllerGetDiagnosticReport >/dev/null
+
+echo "============================"
+echo "17. Segment4 Report Log File"
+echo "============================"
+cat /tmp/report.log  2>/dev/null
+fi
+echo

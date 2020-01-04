@@ -1,0 +1,39 @@
+#!/bin/sh
+chka_ntcpasswd=`grep "ntcpasswd" /var/state/cfg | sed -n "s/^ntcpasswd=\(.*\)$/\1/p"`
+chka_ntcipasswd=`grep "ntcipasswd" /var/state/cfg | sed -n "s/^ntcipasswd=\(.*\)$/\1/p"`
+admin_mode=0
+installer_mode=0
+server_mode=0
+
+if [ -z "$chka_ntcpasswd" ]; then
+        admin_mode=1
+else
+        if [ -z "$chka_ntcipasswd" ]; then
+                installer_mode=1
+        fi
+        chka_user_session=$(expr match "$HTTP_COOKIE" '.*userSessionId=\([-0-9a-zA-Z]*\)')
+        chka_session_type=$(/usr/local/bin/cliclient -g RequestData.Level GetSessionLevel $chka_user_session)
+        sessionid=$chka_user_session
+        case "$chka_session_type" in
+                expert)
+                        installer_mode=1
+                ;;
+                admin)
+                        admin_mode=1
+                ;;
+                *)
+                        sessionid=""
+                ;;
+        esac
+        if [ "$admin_mode" != 1 -a -z "$chka_user_session" ]; then
+                if [ -n "$SERVER_ADDR" -a "$SERVER_ADDR" != "0.0.0.0" ]; then
+                        chka_modemipaddr=`ip addr show dev modem | sed -n 's/.*inet \([0-9\.]*\).*/\1/p'`
+                        if [ "$SERVER_ADDR" = "$chka_modemipaddr" ]; then
+                                installer_mode=1
+                                server_mode=1
+                        fi
+                fi
+        fi
+fi
+unset chka_ntcpasswd chka_ntcipasswd chka_session_type chka_modemipaddr
+export admin_mode installer_mode sessionid server_mode

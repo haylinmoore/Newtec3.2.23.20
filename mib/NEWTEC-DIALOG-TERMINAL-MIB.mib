@@ -1,0 +1,1361 @@
+NEWTEC-DIALOG-TERMINAL-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    Integer32,
+    Unsigned32,
+    Counter32,
+    Counter64,
+    MODULE-IDENTITY,
+    OBJECT-IDENTITY,
+    OBJECT-TYPE
+        FROM SNMPv2-SMI
+
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP
+        FROM SNMPv2-CONF
+    
+    DisplayString
+        FROM SNMPv2-TC
+
+    ntcFunction
+        FROM NEWTEC-MAIN-MIB;
+
+
+--
+--  Module Identification
+--
+
+ntcDialogTerm   MODULE-IDENTITY
+    LAST-UPDATED "201607130900Z"
+    ORGANIZATION "Newtec Cy"
+    CONTACT-INFO
+        "Newtec Cy
+         Postal: Newtec Cy
+                 Laarstraat 5
+                 B-9100 Sint-Niklaas
+                 Belgium
+
+                Tel: +32 3 780 65 00
+                Fax: +32 3 780 65 49
+                Web: www.newtec.be
+                E-mail: techsupport@newtec.be"
+    DESCRIPTION
+        "Newtec MIB containing definitions for Dialog Terminal."
+
+    REVISION  "201607130900Z"
+    DESCRIPTION
+        "Initial release for Dialog 1.3.0"
+    ::= { ntcFunction  10300 }
+    
+
+--
+-- Top-Level Structure
+--
+
+-- ntcDialogTerm content
+
+ntcTrmObjects                    OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmObjects definitions."
+    ::= { ntcDialogTerm 1 }
+    
+ntcTrmConformance                OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Conformance requirements."
+    ::= { ntcDialogTerm 2 }
+    
+-- ntcTrmObjects content
+
+ntcTrmMonitoring                 OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonitoring definitions."
+    ::= { ntcTrmObjects 1 }
+    
+ntcTrmControl                    OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmControl definitions."
+    ::= { ntcTrmObjects 2 }
+    
+-- ntcTrmMonitoring content
+
+ntcTrmMonState                   OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonState definitions."
+    ::= { ntcTrmMonitoring 1 }
+    
+ntcTrmMonEventsCount             OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonEventsCount definitions."
+    ::= { ntcTrmMonitoring 2 }
+    
+ntcTrmMonTrafficStat             OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonTrafficStat definitions."
+    ::= { ntcTrmMonitoring 3 }
+    
+ntcTrmMonTcpStat                 OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonTcpStat definitions."
+    ::= { ntcTrmMonitoring 4 }
+    
+ntcTrmMonDemodulator             OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonDemodulator definitions."
+    ::= { ntcTrmMonitoring 5 }
+    
+ntcTrmMonDemodulatorModcodStat   OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonDemodulatorModcodStat definitions."
+    ::= { ntcTrmMonitoring 6 }
+    
+ntcTrmMonModulator               OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonModulator definitions."
+    ::= { ntcTrmMonitoring 7 }
+    
+ntcTrmMonModulatorModcodStat     OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonModulatorModcodStat definitions."
+    ::= { ntcTrmMonitoring 8 }
+    
+ntcTrmMonEthStat                 OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmMonEthStat definitions."
+    ::= { ntcTrmMonitoring 9 }
+    
+-- ntcTrmControl content
+
+ntcTrmContPureCarrierGen         OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmContPureCarrierGen definitions."
+    ::= { ntcTrmControl 2 }
+    
+ntcTrmContSelfTest               OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Container holding ntcTrmContSelfTest definitions."
+    ::= { ntcTrmControl 3 }
+    
+-- ntcTrmConformance content
+
+ntcTrmConfCompliance             OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Device compliance statements."
+    ::= { ntcTrmConformance 1 }
+    
+ntcTrmConfGroup                  OBJECT-IDENTITY
+    STATUS        current
+    DESCRIPTION   "Groups used by device compliance statements."
+    ::= { ntcTrmConformance 2 }
+    
+
+--
+-- Managed Objects
+--
+
+ntcTrmMonStTemperature           OBJECT-TYPE
+    SYNTAX      Integer32 (-400..1250)
+    UNITS       "Celsius"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Terminal temperature expressed in degrees Celsius. Float represented as
+        integer is scaled by a factor of 10. i.e. a value of 250 means 25 degrees."
+    ::= { ntcTrmMonState 1 }
+    
+ntcTrmMonStTemperatureState      OBJECT-TYPE
+    SYNTAX      INTEGER { normal(0), belowOperational(1), aboveOperational(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Determines whether the terminal is operating in a normal temperature range [0,
+        85] degrees"
+    ::= { ntcTrmMonState 2 }
+    
+ntcTrmMonStOperationalState      OBJECT-TYPE
+    SYNTAX      INTEGER { idle(0), antennaPointing(1), satelliteNetworkLookup(2), synchronizing(3), synchronized(4), networkLayerInit(5), operational(6) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Determines the terminal operational state"
+    ::= { ntcTrmMonState 3 }
+    
+ntcTrmMonStDialogName            OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(1..100))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the terminal within Dialog system."
+    ::= { ntcTrmMonState 4 }
+    
+ntcTrmMonStTransmitting          OBJECT-TYPE
+    SYNTAX      INTEGER { no(0), yes(1) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether the terminal is transmitting or not"
+    ::= { ntcTrmMonState 5 }
+    
+ntcTrmMonStNofCpus               OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of cpu cores"
+    ::= { ntcTrmMonState 6 }
+    
+ntcTrmMonStTable                 OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing the ntcTrmMonSt"
+    ::= { ntcTrmMonState 7 }
+
+ntcTrmMonStEntry                 OBJECT-TYPE
+    SYNTAX      NtcTrmMonStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonStTable."
+    INDEX   { ntcTrmMonStTableIndex  }
+    ::= { ntcTrmMonStTable 1 }
+
+NtcTrmMonStEntry                 ::= SEQUENCE {
+    ntcTrmMonStTableIndex    Unsigned32,
+    ntcTrmMonStCpuId         Unsigned32,
+    ntcTrmMonStCpuUsage      Unsigned32
+    }
+    
+ntcTrmMonStTableIndex            OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonStEntry 1 }
+    
+ntcTrmMonStCpuId                 OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Identification of a cpu core."
+    ::= { ntcTrmMonStEntry 2 }
+    
+ntcTrmMonStCpuUsage              OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total cpu usage of a cpu core, expressed in %. Float represented as integer,
+        scaled by a factor 100. i.e. a value of 1842 means a cpu usage of 18.42%"
+    ::= { ntcTrmMonStEntry 3 }
+    
+ntcTrmMonEvCntNetworkConfigFails OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times the network layer configuration has failed. This value is
+        always incremented."
+    ::= { ntcTrmMonEventsCount 1 }
+    
+ntcTrmMonEvCntForwardSignalErrs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times an error has been reported on the forward signalling. This
+        value is always incremented."
+    ::= { ntcTrmMonEventsCount 2 }
+    
+ntcTrmMonEvCntReturnSignalErrs   OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times an error has been reported on the return signalling. This
+        value is always incremented."
+    ::= { ntcTrmMonEventsCount 3 }
+    
+ntcTrmMonEvCntFullReinits        OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times a full terminal initialization was triggered. This value is
+        always incremented."
+    ::= { ntcTrmMonEventsCount 4 }
+    
+ntcTrmMonEvCntFastReinits        OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times a fast terminal synchronization was triggered. This value is
+        always incremented."
+    ::= { ntcTrmMonEventsCount 5 }
+    
+ntcTrmMonEvCntOperationals       OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times a terminal became fully operational. This value is always
+        incremented."
+    ::= { ntcTrmMonEventsCount 6 }
+    
+ntcTrmMonEvCntSynchronized       OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times a terminal reached the synchronized state. This value is
+        always incremented."
+    ::= { ntcTrmMonEventsCount 7 }
+    
+ntcTrmMonEvCntNcrsTooLate        OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times the NCR signalling was too late. This value is always
+        incremented."
+    ::= { ntcTrmMonEventsCount 8 }
+    
+ntcTrmMonEvCntNcrsWrong          OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times a wrong NCR value was received. This value is always
+        incremented."
+    ::= { ntcTrmMonEventsCount 9 }
+    
+ntcTrmMonEvCntNcrsNotReceived    OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times an error in the reception of the NCR occured. This value is
+        always incremented."
+    ::= { ntcTrmMonEventsCount 10 }
+    
+ntcTrmMonTrStClasses             OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of active traffic classes"
+    ::= { ntcTrmMonTrafficStat 1 }
+    
+ntcTrmMonTrStTable               OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonTrStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing traffic path statistics"
+    ::= { ntcTrmMonTrafficStat 2 }
+
+ntcTrmMonTrStEntry               OBJECT-TYPE
+    SYNTAX      NtcTrmMonTrStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonTrStTable."
+    INDEX   { ntcTrmMonTrStTableIndex  }
+    ::= { ntcTrmMonTrStTable 1 }
+
+NtcTrmMonTrStEntry               ::= SEQUENCE {
+    ntcTrmMonTrStTableIndex           Unsigned32,
+    ntcTrmMonTrStClassName            OCTET STRING,
+    ntcTrmMonTrStTrafficType          INTEGER,
+    ntcTrmMonTrStReturnInPkts         Counter64,
+    ntcTrmMonTrStReturnInBytes        Counter64,
+    ntcTrmMonTrStReturnInBitrate      Counter64,
+    ntcTrmMonTrStReturnTrnsPkts       Counter64,
+    ntcTrmMonTrStReturnTrnsBytes      Counter64,
+    ntcTrmMonTrStReturnTrnsBitrate    Counter64,
+    ntcTrmMonTrStReturnDropPkts       Counter64,
+    ntcTrmMonTrStReturnDropBytes      Counter64,
+    ntcTrmMonTrStReturnDropBitrate    Counter64,
+    ntcTrmMonTrStReturnQueueTime      Unsigned32
+    }
+    
+ntcTrmMonTrStTableIndex          OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonTrStEntry 1 }
+    
+ntcTrmMonTrStClassName           OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..500))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "User friendly identification of the traffic class"
+    ::= { ntcTrmMonTrStEntry 2 }
+    
+ntcTrmMonTrStTrafficType         OBJECT-TYPE
+    SYNTAX      INTEGER { unknown(0), layer2(1), layer3unicast(2), layer3multicast(3) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Determines the type of the traffic for a particular traffic class"
+    ::= { ntcTrmMonTrStEntry 3 }
+    
+ntcTrmMonTrStReturnInPkts        OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Count the number of received packets for the return link. This value is always
+        incremented."
+    ::= { ntcTrmMonTrStEntry 4 }
+    
+ntcTrmMonTrStReturnInBytes       OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of received bytes for the return link. This value is always
+        incremented."
+    ::= { ntcTrmMonTrStEntry 5 }
+    
+ntcTrmMonTrStReturnInBitrate     OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "bps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Bitrate of the received data for the return link. Expressed in bps."
+    ::= { ntcTrmMonTrStEntry 6 }
+    
+ntcTrmMonTrStReturnTrnsPkts      OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The incoming packets can be transformed more efficiently because of Header
+        compression and data compression; or less efficiently because of IP Tunneling.
+        This parameter will count the transformed packets count. (in Tellinet this
+        corresponds with the data which is send to tellishape). This value is always
+        incremented."
+    ::= { ntcTrmMonTrStEntry 7 }
+    
+ntcTrmMonTrStReturnTrnsBytes     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The incoming bytes can be transformed more efficiently because of Header
+        compression and data compression; or less efficiently because of IP Tunneling.
+        This parameter will count the transformed byte count. (in Tellinet this
+        corresponds with the data which is send to tellishape). This value is always
+        incremented."
+    ::= { ntcTrmMonTrStEntry 8 }
+    
+ntcTrmMonTrStReturnTrnsBitrate   OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "bps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Bitrate of the transmitted data for the return link. Expressed in bps"
+    ::= { ntcTrmMonTrStEntry 9 }
+    
+ntcTrmMonTrStReturnDropPkts      OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of dropped packets on the return link. This value is always
+        incremented."
+    ::= { ntcTrmMonTrStEntry 10 }
+    
+ntcTrmMonTrStReturnDropBytes     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of dropped bytes on the return link"
+    ::= { ntcTrmMonTrStEntry 11 }
+    
+ntcTrmMonTrStReturnDropBitrate   OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "bps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total droprate of the return link. Expressed in bps"
+    ::= { ntcTrmMonTrStEntry 12 }
+    
+ntcTrmMonTrStReturnQueueTime     OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "ms"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Average time a packet for this Traffic class is queued. Expressed in ms"
+    ::= { ntcTrmMonTrStEntry 13 }
+    
+ntcTrmMonTcpStClasses            OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of active traffic classes"
+    ::= { ntcTrmMonTcpStat 1 }
+    
+ntcTrmMonTcpStTable              OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonTcpStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing TCP sessions statistics"
+    ::= { ntcTrmMonTcpStat 2 }
+
+ntcTrmMonTcpStEntry              OBJECT-TYPE
+    SYNTAX      NtcTrmMonTcpStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonTcpStTable."
+    INDEX   { ntcTrmMonTcpStTableIndex  }
+    ::= { ntcTrmMonTcpStTable 1 }
+
+NtcTrmMonTcpStEntry              ::= SEQUENCE {
+    ntcTrmMonTcpStTableIndex            Unsigned32,
+    ntcTrmMonTcpStClassName             OCTET STRING,
+    ntcTrmMonTcpStTcpSessions           Counter64,
+    ntcTrmMonTcpStTcpSessionsLan        Counter64,
+    ntcTrmMonTcpStTcpSessionsHub        Counter64,
+    ntcTrmMonTcpStTcpSessionsDestroy    Counter64
+    }
+    
+ntcTrmMonTcpStTableIndex         OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonTcpStEntry 1 }
+    
+ntcTrmMonTcpStClassName          OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..500))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "User friendly identification of the traffic class"
+    ::= { ntcTrmMonTcpStEntry 2 }
+    
+ntcTrmMonTcpStTcpSessions        OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of Pending TCP sessions"
+    ::= { ntcTrmMonTcpStEntry 3 }
+    
+ntcTrmMonTcpStTcpSessionsLan     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of the incoming TCP sessions triggered from the modem Lan Side. This
+        value is always incremented."
+    ::= { ntcTrmMonTcpStEntry 4 }
+    
+ntcTrmMonTcpStTcpSessionsHub     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of the incoming TCP sessions triggered from the Hub Side. This value is
+        always incremented."
+    ::= { ntcTrmMonTcpStEntry 5 }
+    
+ntcTrmMonTcpStTcpSessionsDestroy OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of TCP sessions which are destroyed. This value is always incremented."
+    ::= { ntcTrmMonTcpStEntry 6 }
+    
+ntcTrmMonDemodStDemods           OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of demodulators"
+    ::= { ntcTrmMonDemodulator 1 }
+    
+ntcTrmMonDemodStTable            OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonDemodStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing demodulator statistics"
+    ::= { ntcTrmMonDemodulator 2 }
+
+ntcTrmMonDemodStEntry            OBJECT-TYPE
+    SYNTAX      NtcTrmMonDemodStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonDemodStTable."
+    INDEX   { ntcTrmMonDemodStTableIndex  }
+    ::= { ntcTrmMonDemodStTable 1 }
+
+NtcTrmMonDemodStEntry            ::= SEQUENCE {
+    ntcTrmMonDemodStTableIndex         Unsigned32,
+    ntcTrmMonDemodDemodId              Unsigned32,
+    ntcTrmMonDemodForwardLockState     INTEGER,
+    ntcTrmMonDemodPhyLayerMode         INTEGER,
+    ntcTrmMonDemodLocks                Counter32,
+    ntcTrmMonDemodRxPowerLevel         Integer32,
+    ntcTrmMonDemodEsNo                 Integer32,
+    ntcTrmMonDemodRxFrequency          Counter64,
+    ntcTrmMonDemodRxSymbolRate         Unsigned32,
+    ntcTrmMonDemodPhyLayerFrames       Counter64,
+    ntcTrmMonDemodDummyFrames          Counter64,
+    ntcTrmMonDemodBasebanddFrames      Counter64,
+    ntcTrmMonDemodOperationalModcod    INTEGER,
+    ntcTrmMonDemodModcodCount          Counter32
+    }
+    
+ntcTrmMonDemodStTableIndex       OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonDemodStEntry 1 }
+    
+ntcTrmMonDemodDemodId            OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Identification of a demodulator."
+    ::= { ntcTrmMonDemodStEntry 2 }
+    
+ntcTrmMonDemodForwardLockState   OBJECT-TYPE
+    SYNTAX      INTEGER { no(0), yes(1) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the current lock status of the forward link."
+    ::= { ntcTrmMonDemodStEntry 3 }
+    
+ntcTrmMonDemodPhyLayerMode       OBJECT-TYPE
+    SYNTAX      INTEGER { none(0), dvbs2(1), dvbs2x(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the technology mode for the physical layer of the forward link."
+    ::= { ntcTrmMonDemodStEntry 4 }
+    
+ntcTrmMonDemodLocks              OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of times the terminal acquires lock"
+    ::= { ntcTrmMonDemodStEntry 5 }
+    
+ntcTrmMonDemodRxPowerLevel       OBJECT-TYPE
+    SYNTAX      Integer32 (-1280..1280)
+    UNITS       "dBm"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Receive power level expressed in dBm. Float represented as integer is scaled
+        by a factor of 10. i.e. a value of
+        -255 means
+        -25.5 dBm."
+    ::= { ntcTrmMonDemodStEntry 6 }
+    
+ntcTrmMonDemodEsNo               OBJECT-TYPE
+    SYNTAX      Integer32 (-1280..1280)
+    UNITS       "dB"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Es/No expressed in dB. Float represented as integer is scaled by a factor of
+        10. i.e. a value of
+        -255 means
+        -25.5 dB."
+    ::= { ntcTrmMonDemodStEntry 7 }
+    
+ntcTrmMonDemodRxFrequency        OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "Hz"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Downlink RF Receive Frequency in Hz"
+    ::= { ntcTrmMonDemodStEntry 8 }
+    
+ntcTrmMonDemodRxSymbolRate       OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Symbol rate in Bauds"
+    ::= { ntcTrmMonDemodStEntry 9 }
+    
+ntcTrmMonDemodPhyLayerFrames     OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of Recieved Physical Layer Frames. This value is always
+        incremented."
+    ::= { ntcTrmMonDemodStEntry 10 }
+    
+ntcTrmMonDemodDummyFrames        OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of dummy frames received. This value is always incremented."
+    ::= { ntcTrmMonDemodStEntry 11 }
+    
+ntcTrmMonDemodBasebanddFrames    OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of Recieved BaseBand Frames. (Physical Layer Frame = BBF Frames +
+        Dummy Frames). This value is always incremented."
+    ::= { ntcTrmMonDemodStEntry 12 }
+    
+ntcTrmMonDemodOperationalModcod  OBJECT-TYPE
+    SYNTAX      INTEGER { unspecified(0), qpsk14(1), qpsk13(2), qpsk25(3), qpsk12(4), qpsk35(5), qpsk23(6), qpsk34(7), qpsk45(8), qpsk56(9), qpsk89(10), qpsk910(11), e8psk35(12), e8psk23(13), e8psk34(14), e8psk56(15), e8psk89(16), e8psk910(17), e16apsk23(18), e16apsk34(19), e16apsk45(20), e16apsk56(21), e16apsk89(22), e16apsk910(23), e32apsk34(24), e32apsk45(25), e32apsk56(26), e32apsk89(27), e32apsk910(28), qpsk1145(32), qpsk415(33), qpsk1345(34), qpsk1445(35), qpsk920(36), qpsk715(37), qpsk815(38), qpsk1120(39), qpsk3245(40), e8psk715(41), e8psk815(42), e8apsk59l(43), e8psk2645(44), e8apsk2645l(45), e8psk2336(46), e8psk2536(47), e8psk3245(48), e8psk1318(49), e16apsk715(50), e16apsk12l(51), e16apsk815(52), e16apsk815l(53), e16apsk59l(54), e16apsk2645(55), e16apsk35(56), e16apsk35l(57), e16apsk2845(58), e16apsk2336(59), e16apsk23l(60), e16apsk2536(61), e16apsk3245(62), e16apsk1318(63), e16apsk79(64), e16apsk7790(65), e32apsk23(66), e32apsk23l(67), e32apsk3245(69), e32apsk1115(70), e32apsk79(71), e64apsk3245l(72), e64apsk1115(73), e64apsk79(74), e64apsk45(76), e64apsk56(78), e128apsk34(80), e128apsk79(81), e256apsk2945l(82), e256apsk23l(83), e256apsk3145l(84), e256apsk3245(85), e256apsk1115l(86), e256apsk34(87) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The list of DVB-SX MODCODs."
+    ::= { ntcTrmMonDemodStEntry 13 }
+    
+ntcTrmMonDemodModcodCount        OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of modcods that are enabled, as well as number of entries in the
+        modcods table."
+    ::= { ntcTrmMonDemodStEntry 14 }
+    
+ntcTrmMonDemMcStatCount          OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of demodulator modcods"
+    ::= { ntcTrmMonDemodulatorModcodStat 1 }
+    
+ntcTrmMonDemMcStatTable          OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonDemMcStatEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing demodulator modcod statistics"
+    ::= { ntcTrmMonDemodulatorModcodStat 2 }
+
+ntcTrmMonDemMcStatEntry          OBJECT-TYPE
+    SYNTAX      NtcTrmMonDemMcStatEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonDemMcStatTable."
+    INDEX   { ntcTrmMonDemMcStatTableIndex  }
+    ::= { ntcTrmMonDemMcStatTable 1 }
+
+NtcTrmMonDemMcStatEntry          ::= SEQUENCE {
+    ntcTrmMonDemMcStatTableIndex       Unsigned32,
+    ntcTrmMonDemMcStatDemodId          Unsigned32,
+    ntcTrmMonDemMcStatModcodId         INTEGER,
+    ntcTrmMonDemMcStatBbdFrames        Counter64,
+    ntcTrmMonDemMcStatBbdDropFrames    Counter64
+    }
+    
+ntcTrmMonDemMcStatTableIndex     OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonDemMcStatEntry 1 }
+    
+ntcTrmMonDemMcStatDemodId        OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Identification of a demodulator."
+    ::= { ntcTrmMonDemMcStatEntry 2 }
+    
+ntcTrmMonDemMcStatModcodId       OBJECT-TYPE
+    SYNTAX      INTEGER { unspecified(0), qpsk14(1), qpsk13(2), qpsk25(3), qpsk12(4), qpsk35(5), qpsk23(6), qpsk34(7), qpsk45(8), qpsk56(9), qpsk89(10), qpsk910(11), e8psk35(12), e8psk23(13), e8psk34(14), e8psk56(15), e8psk89(16), e8psk910(17), e16apsk23(18), e16apsk34(19), e16apsk45(20), e16apsk56(21), e16apsk89(22), e16apsk910(23), e32apsk34(24), e32apsk45(25), e32apsk56(26), e32apsk89(27), e32apsk910(28), qpsk1145(32), qpsk415(33), qpsk1345(34), qpsk1445(35), qpsk920(36), qpsk715(37), qpsk815(38), qpsk1120(39), qpsk3245(40), e8psk715(41), e8psk815(42), e8apsk59l(43), e8psk2645(44), e8apsk2645l(45), e8psk2336(46), e8psk2536(47), e8psk3245(48), e8psk1318(49), e16apsk715(50), e16apsk12l(51), e16apsk815(52), e16apsk815l(53), e16apsk59l(54), e16apsk2645(55), e16apsk35(56), e16apsk35l(57), e16apsk2845(58), e16apsk2336(59), e16apsk23l(60), e16apsk2536(61), e16apsk3245(62), e16apsk1318(63), e16apsk79(64), e16apsk7790(65), e32apsk23(66), e32apsk23l(67), e32apsk3245(69), e32apsk1115(70), e32apsk79(71), e64apsk3245l(72), e64apsk1115(73), e64apsk79(74), e64apsk45(76), e64apsk56(78), e128apsk34(80), e128apsk79(81), e256apsk2945l(82), e256apsk23l(83), e256apsk3145l(84), e256apsk3245(85), e256apsk1115l(86), e256apsk34(87) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The list of DVB-SX MODCODs."
+    ::= { ntcTrmMonDemMcStatEntry 3 }
+    
+ntcTrmMonDemMcStatBbdFrames      OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of Recieved BaseBand Frames. (Physical Layer Frame = BBF Frames +
+        Dummy Frames). This value is always incremented."
+    ::= { ntcTrmMonDemMcStatEntry 4 }
+    
+ntcTrmMonDemMcStatBbdDropFrames  OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of Received BBF frames for a given Modcod which could not be
+        decoded. This value is always incremented."
+    ::= { ntcTrmMonDemMcStatEntry 5 }
+    
+ntcTrmMonModPhyLayerMode         OBJECT-TYPE
+    SYNTAX      INTEGER { none(0), cpm(1), dvbs2(2), dvbs2ext(3), hrc(4) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the technology mode for the physical layer of the return link."
+    ::= { ntcTrmMonModulator 1 }
+    
+ntcTrmMonModTxPwerLevel          OBJECT-TYPE
+    SYNTAX      Integer32 (-1280..1280)
+    UNITS       "dBm"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Tx power level (This includes terminal and BUC) expressed in dBm. Float
+        represented as integer is scaled by a factor of 10. i.e. a value of
+        -255 means
+        -25.5 dBm."
+    ::= { ntcTrmMonModulator 2 }
+    
+ntcTrmMonModTxSymbolRate         OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Symbol rate in Bauds"
+    ::= { ntcTrmMonModulator 3 }
+    
+ntcTrmMonModTxFrequency          OBJECT-TYPE
+    SYNTAX      Counter64
+    UNITS       "Hz"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Uplink RF transmission frequency in Hz"
+    ::= { ntcTrmMonModulator 4 }
+    
+ntcTrmMonModTxPowerSpectrDensity OBJECT-TYPE
+    SYNTAX      Integer32 (-1280..1280)
+    UNITS       "dBm/Hz"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Tx Power Spectral Density expressed in dBm/Hz. Float represented as integer is
+        scaled by a factor of 10. i.e. a value of
+        -255 means
+        -25.5 dBm/Hz."
+    ::= { ntcTrmMonModulator 5 }
+    
+ntcTrmMonModTxHRCModcod          OBJECT-TYPE
+    SYNTAX      INTEGER { unspecified(0), qpsk310(6), qpsk720(7), qpsk410(8), qpsk920(9), qpsk12(10), qpsk1120(11), qpsk610(12), qpsk1320(13), qpsk710(14), qpsk34(15), qpsk45(16), e8psk1730(17), e8psk610(18), e8psk1930(19), e8psk23(20), e8psk710(21), e8psk1115(22), e8psk2330(23), e8psk45(24), e8psk56(25), e8psk1315(26), e16apsk2740(27), e16apsk710(28), e16apsk2940(29), e16apsk34(30), e16apsk3140(31), e16apsk45(32), e16apsk3340(33), e16apsk1720(34), e16apsk78(35), e32apsk1825(36), e32apsk3750(37), e32apsk3850(38), e32apsk3950(39), e32apsk45(40), e32apsk4150(41), e32apsk2125(42), e32apsk4350(43), e32apsk2225(44), e32apsk910(45) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This enum represents list of HRC MODCODs"
+    ::= { ntcTrmMonModulator 6 }
+    
+ntcTrmMonModRollOff              OBJECT-TYPE
+    SYNTAX      INTEGER { undefined(0), rolloff5(1), rolloff10(2), rolloff15(3), rolloff20(4), rolloff25(5), rolloff35(6) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Roll Off for the return link"
+    ::= { ntcTrmMonModulator 7 }
+    
+ntcTrmMonModCpmTxBursts          OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of Tx bursts 4CPM. This value is always incremented."
+    ::= { ntcTrmMonModulator 8 }
+    
+ntcTrmMonModS2TxBasebandFrames   OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of BBF frames transmitted. This value is always incremented."
+    ::= { ntcTrmMonModulator 9 }
+    
+ntcTrmMonModTxHRCMcSpreadFactor  OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Spreading factor for the HRC modcod"
+    ::= { ntcTrmMonModulator 10 }
+    
+ntcTrmMonModTxModcods            OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of modcods that are enabled, as well as number of entries in the
+        modcods table."
+    ::= { ntcTrmMonModulatorModcodStat 1 }
+    
+ntcTrmMonModTxMcStatTable        OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonModTxMcStatEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing the ntcTrmMonModTxMcStat"
+    ::= { ntcTrmMonModulatorModcodStat 2 }
+
+ntcTrmMonModTxMcStatEntry        OBJECT-TYPE
+    SYNTAX      NtcTrmMonModTxMcStatEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonModTxMcStatTable."
+    INDEX   { ntcTrmMonModTxMcStatTableIndex  }
+    ::= { ntcTrmMonModTxMcStatTable 1 }
+
+NtcTrmMonModTxMcStatEntry        ::= SEQUENCE {
+    ntcTrmMonModTxMcStatTableIndex    Unsigned32,
+    ntcTrmMonModTxModcodId            INTEGER
+    }
+    
+ntcTrmMonModTxMcStatTableIndex   OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonModTxMcStatEntry 1 }
+    
+ntcTrmMonModTxModcodId           OBJECT-TYPE
+    SYNTAX      INTEGER { unspecified(0), qpsk14(1), qpsk13(2), qpsk25(3), qpsk12(4), qpsk35(5), qpsk23(6), qpsk34(7), qpsk45(8), qpsk56(9), qpsk89(10), qpsk910(11), e8psk35(12), e8psk23(13), e8psk34(14), e8psk56(15), e8psk89(16), e8psk910(17), e16apsk23(18), e16apsk34(19), e16apsk45(20), e16apsk56(21), e16apsk89(22), e16apsk910(23), e32apsk34(24), e32apsk45(25), e32apsk56(26), e32apsk89(27), e32apsk910(28), qpsk45180(129), qpsk60180(130), qpsk72180(131), qpsk80180(132), qpsk90180(133), qpsk100180(134), qpsk108180(135), qpsk114180(136), qpsk120180(137), qpsk126180(138), qpsk135180(139), qpsk144180(140), qpsk150180(141), qpsk160180(142), qpsk162180(143), e8psk80180(144), e8psk90180(145), e8psk100180(146), e8psk108180(147), e8psk114180(148), e8psk120180(149), e8psk126180(150), e8psk135180(151), e8psk144180(152), e8psk150180(153), e16apsk80180(154), e16apsk90180(155), e16apsk100180(156), e16apsk108180(157), e16apsk114180(158), e16apsk120180(159), e16apsk126180(160), e16apsk135180(161), e16apsk144180(162), e16apsk150180(163), e16apsk160180(164), e16apsk162180(165), e32apsk100180(166), e32apsk108180(167), e32apsk114180(168), e32apsk120180(169), e32apsk126180(170), e32apsk135180(171), e32apsk144180(172), e32apsk150180(173), e32apsk160180(174), e32apsk162180(175), e64apsk90180(176), e64apsk100180(177), e64apsk108180(178), e64apsk114180(179), e64apsk120180(180), e64apsk126180(181), e64apsk135180(182), e64apsk144180(183), e64apsk150180(184), e64apsk160180(185), e64apsk162180(186), e8pskl80180(187), e8pskl90180(188), e8pskl100180(189), e8pskl108180(190), e8pskl114180(191), e8pskl120180(192), e16apskl80180(193), e16apskl90180(194), e16apskl100180(195), e16apskl108180(196), e16apskl114180(197), e16apskl120180(198), e16apskl126180(199), e16apskl135180(200), e16apskl144180(201), e16apskl150180(202), e16apskl160180(203), e16apskl162180(204), e64apskl90180(205), e64apskl100180(206), e64apskl108180(207), e64apskl114180(208), e64apskl120180(209), e64apskl126180(210), e64apskl135180(211), e64apskl144180(212), e64apskl150180(213), e64apskl160180(214), e64apskl162180(215), qpsk1345(256), qpsk920(257), qpsk1120(258), e8apsk59l(259), e8apsk2645l(260), e8psk2336(261), e8psk2536(262), e8psk1318(263), e16apsk12l(264), e16apsk815l(265), e16apsk59l(266), e16apsk2645(267), e16apsk35(268), e16apsk35l(269), e16apsk2845(270), e16apsk2336(271), e16apsk23l(272), e16apsk2536(273), e16apsk1318(274), e16apsk79(275), e16apsk7790(276), e32apsk23l(277), e32apsk3245(278), e32apsk1115(279), e32apsk79(280), e64apsk3245l(281), e64apsk1115(282), e64apsk79(283), e64apsk45(284), e64apsk56(285), e128apsk34(286), e128apsk79(287), e256apsk2945l(288), e256apsk23l(289), e256apsk3145l(290), e256apsk3245(291), e256apsk1115l(292), e256apsk34(293), qpsk1145(294), qpsk415(295), qpsk1445(296), qpsk715(297), qpsk815(298), qpsk3245(299), e8psk715(300), e8psk815(301), e8psk2645(302), e8psk3245(303), e16apsk715(304), e16apsk815(305), e16apsk3245(306), e32apsk23(307) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This list is the union of all DVB-S2 and S2 Extensions MODCODs. It can be used
+        for easier monitoring or other situations where two separate MODCOD types
+        would be too cumbersome."
+    ::= { ntcTrmMonModTxMcStatEntry 2 }
+    
+ntcTrmMonEthStIfs                OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of supported ethernet interfaces"
+    ::= { ntcTrmMonEthStat 1 }
+    
+ntcTrmMonEthStTable              OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NtcTrmMonEthStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing ethernet interface statistics"
+    ::= { ntcTrmMonEthStat 2 }
+
+ntcTrmMonEthStEntry              OBJECT-TYPE
+    SYNTAX      NtcTrmMonEthStEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row of the ntcTrmMonEthStTable."
+    INDEX   { ntcTrmMonEthStTableIndex  }
+    ::= { ntcTrmMonEthStTable 1 }
+
+NtcTrmMonEthStEntry              ::= SEQUENCE {
+    ntcTrmMonEthStTableIndex    Unsigned32,
+    ntcTrmMonEthStIfName        DisplayString,
+    ntcTrmMonEthStRxPkts        Counter64,
+    ntcTrmMonEthStRxBytes       Counter64,
+    ntcTrmMonEthStRxPktDrps     Counter64,
+    ntcTrmMonEthStTxPkts        Counter64,
+    ntcTrmMonEthStTxBytes       Counter64,
+    ntcTrmMonEthStTxPktDrps     Counter64
+    }
+    
+ntcTrmMonEthStTableIndex         OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "TableIndex"
+    ::= { ntcTrmMonEthStEntry 1 }
+    
+ntcTrmMonEthStIfName             OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(1..16))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of an Ethernet interface"
+    ::= { ntcTrmMonEthStEntry 2 }
+    
+ntcTrmMonEthStRxPkts             OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of packets received on the specific logical interface. This value is
+        always incremented."
+    ::= { ntcTrmMonEthStEntry 3 }
+    
+ntcTrmMonEthStRxBytes            OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of bytes received on the specific logical interface. This value is
+        always incremented."
+    ::= { ntcTrmMonEthStEntry 4 }
+    
+ntcTrmMonEthStRxPktDrps          OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of packets dropped at reception on the specific logical interface. This
+        value is always incremented."
+    ::= { ntcTrmMonEthStEntry 5 }
+    
+ntcTrmMonEthStTxPkts             OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of transmitted packets on the specific logical interface. This value is
+        always incremented."
+    ::= { ntcTrmMonEthStEntry 6 }
+    
+ntcTrmMonEthStTxBytes            OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of bytes transmitted on the specific logical interface. This value is
+        always incremented."
+    ::= { ntcTrmMonEthStEntry 7 }
+    
+ntcTrmMonEthStTxPktDrps          OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of packets dropped at transmission on the specific logical interface.
+        This value is always incremented."
+    ::= { ntcTrmMonEthStEntry 8 }
+    
+ntcTrmContReboot                 OBJECT-TYPE
+    SYNTAX      INTEGER { no(0), yes(1) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Performs a reboot of the terminal. Writing a 1 causes the terminal to reboot."
+    DEFVAL { no }
+    ::= { ntcTrmControl 1 }
+    
+ntcTrmContPurCarGenMode          OBJECT-TYPE
+    SYNTAX      INTEGER { stop(0), run(1) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls the pure carrier generation. Writing 1 starts generating the pure
+        carrier, and 0 stops generating the pure carrier."
+    DEFVAL { stop }
+    ::= { ntcTrmContPureCarrierGen 1 }
+    
+ntcTrmContPurCarGenTxFrequency   OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(1..16))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "ASCII representation of Uplink RF transmission frequency in Hz. Allowed values
+        between 3 and 30GHz."
+    DEFVAL { "3" }
+    ::= { ntcTrmContPureCarrierGen 2 }
+    
+ntcTrmContPurCarGenDuration      OBJECT-TYPE
+    SYNTAX      Unsigned32 (10..1800)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Duration in seconds [10 .. 1800]"
+    DEFVAL { 10 }
+    ::= { ntcTrmContPureCarrierGen 3 }
+    
+ntcTrmContPurCarGenTxPowerLevel  OBJECT-TYPE
+    SYNTAX      Integer32 (-500..50)
+    UNITS       "dBm"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Tx power level (This includes terminal and BUC) expressed in dBm. Float
+        represented as integer is scaled by a factor of 10. i.e. a value of
+        -255 means
+        -25.5 dBm."
+    DEFVAL { 0 }
+    ::= { ntcTrmContPureCarrierGen 4 }
+    
+ntcTrmContPurCarGenIgnoreFwdLock OBJECT-TYPE
+    SYNTAX      INTEGER { no(0), yes(1) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether the forward lock is ignored or not"
+    DEFVAL { no }
+    ::= { ntcTrmContPureCarrierGen 5 }
+    
+ntcTrmContSelfTestState          OBJECT-TYPE
+    SYNTAX      INTEGER { stop(0), start(1), running(2) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls the execution of the self test. Writing 1 starts the self test, and 0
+        stops the self test."
+    DEFVAL { stop }
+    ::= { ntcTrmContSelfTest 1 }
+    
+ntcTrmContSelfTestStatus         OBJECT-TYPE
+    SYNTAX      INTEGER { idle(0), running(1), results(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Current status of the self test"
+    ::= { ntcTrmContSelfTest 2 }
+    
+ntcTrmContSelfTestStartTime      OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Start time of the self test (epoch time)"
+    ::= { ntcTrmContSelfTest 3 }
+    
+ntcTrmContSelfTestLanTest        OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the LAN test"
+    ::= { ntcTrmContSelfTest 4 }
+    
+ntcTrmContSelfTestLanResult      OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..500))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Results of the LAN test"
+    ::= { ntcTrmContSelfTest 5 }
+    
+ntcTrmContSelfTestTcpSessions    OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of Pending TCP sessions"
+    ::= { ntcTrmContSelfTest 6 }
+    
+ntcTrmContSelfTestPhyLayerState  OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the Physical layer test"
+    ::= { ntcTrmContSelfTest 7 }
+    
+ntcTrmContSelfTestLnkLayerState  OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the Data Link Layer test"
+    ::= { ntcTrmContSelfTest 8 }
+    
+ntcTrmContSelfTestNetLayerState  OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the Network Layer test"
+    ::= { ntcTrmContSelfTest 9 }
+    
+ntcTrmContSelfTestPingTest       OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the Ping test"
+    ::= { ntcTrmContSelfTest 10 }
+    
+ntcTrmContSelfTestPingResult     OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..500))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Results of the ping test containing minimum, maximum and average roundtrip
+        times in ms"
+    ::= { ntcTrmContSelfTest 11 }
+    
+ntcTrmContSelfTestDnsTest        OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the Dns Test"
+    ::= { ntcTrmContSelfTest 12 }
+    
+ntcTrmContSelfTestHttpTest       OBJECT-TYPE
+    SYNTAX      INTEGER { nOK(0), oK(1), nA(2) }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "State of the Http Test"
+    ::= { ntcTrmContSelfTest 13 }
+    
+
+--
+--  Module Conformance
+--
+
+ntcTrmConfGrpV1Standard          OBJECT-GROUP
+    OBJECTS    {
+                   ntcTrmMonStTemperature,
+                   ntcTrmMonStTemperatureState,
+                   ntcTrmMonStOperationalState,
+                   ntcTrmMonStDialogName,
+                   ntcTrmMonStTransmitting,
+                   ntcTrmMonStNofCpus,
+                   ntcTrmMonStCpuId,
+                   ntcTrmMonStCpuUsage,
+                   ntcTrmMonEvCntNetworkConfigFails,
+                   ntcTrmMonEvCntForwardSignalErrs,
+                   ntcTrmMonEvCntReturnSignalErrs,
+                   ntcTrmMonEvCntFullReinits,
+                   ntcTrmMonEvCntFastReinits,
+                   ntcTrmMonEvCntOperationals,
+                   ntcTrmMonEvCntSynchronized,
+                   ntcTrmMonEvCntNcrsTooLate,
+                   ntcTrmMonEvCntNcrsWrong,
+                   ntcTrmMonEvCntNcrsNotReceived,
+                   ntcTrmMonTrStClasses,
+                   ntcTrmMonTrStClassName,
+                   ntcTrmMonTrStTrafficType,
+                   ntcTrmMonTrStReturnInPkts,
+                   ntcTrmMonTrStReturnInBytes,
+                   ntcTrmMonTrStReturnInBitrate,
+                   ntcTrmMonTrStReturnTrnsPkts,
+                   ntcTrmMonTrStReturnTrnsBytes,
+                   ntcTrmMonTrStReturnTrnsBitrate,
+                   ntcTrmMonTrStReturnDropPkts,
+                   ntcTrmMonTrStReturnDropBytes,
+                   ntcTrmMonTrStReturnDropBitrate,
+                   ntcTrmMonTrStReturnQueueTime,
+                   ntcTrmMonTcpStClasses,
+                   ntcTrmMonTcpStClassName,
+                   ntcTrmMonTcpStTcpSessions,
+                   ntcTrmMonTcpStTcpSessionsLan,
+                   ntcTrmMonTcpStTcpSessionsHub,
+                   ntcTrmMonTcpStTcpSessionsDestroy,
+                   ntcTrmMonDemodStDemods,
+                   ntcTrmMonDemodDemodId,
+                   ntcTrmMonDemodForwardLockState,
+                   ntcTrmMonDemodPhyLayerMode,
+                   ntcTrmMonDemodLocks,
+                   ntcTrmMonDemodRxPowerLevel,
+                   ntcTrmMonDemodEsNo,
+                   ntcTrmMonDemodRxFrequency,
+                   ntcTrmMonDemodRxSymbolRate,
+                   ntcTrmMonDemodPhyLayerFrames,
+                   ntcTrmMonDemodDummyFrames,
+                   ntcTrmMonDemodBasebanddFrames,
+                   ntcTrmMonDemodOperationalModcod,
+                   ntcTrmMonDemodModcodCount,
+                   ntcTrmMonDemMcStatCount,
+                   ntcTrmMonDemMcStatDemodId,
+                   ntcTrmMonDemMcStatModcodId,
+                   ntcTrmMonDemMcStatBbdFrames,
+                   ntcTrmMonDemMcStatBbdDropFrames,
+                   ntcTrmMonModPhyLayerMode,
+                   ntcTrmMonModTxPwerLevel,
+                   ntcTrmMonModTxSymbolRate,
+                   ntcTrmMonModTxFrequency,
+                   ntcTrmMonModTxPowerSpectrDensity,
+                   ntcTrmMonModTxHRCModcod,
+                   ntcTrmMonModRollOff,
+                   ntcTrmMonModCpmTxBursts,
+                   ntcTrmMonModS2TxBasebandFrames,
+                   ntcTrmMonModTxHRCMcSpreadFactor,
+                   ntcTrmMonModTxModcods,
+                   ntcTrmMonModTxModcodId,
+                   ntcTrmMonEthStIfs,
+                   ntcTrmMonEthStIfName,
+                   ntcTrmMonEthStRxPkts,
+                   ntcTrmMonEthStRxBytes,
+                   ntcTrmMonEthStRxPktDrps,
+                   ntcTrmMonEthStTxPkts,
+                   ntcTrmMonEthStTxBytes,
+                   ntcTrmMonEthStTxPktDrps,
+                   ntcTrmContReboot,
+                   ntcTrmContPurCarGenMode,
+                   ntcTrmContPurCarGenTxFrequency,
+                   ntcTrmContPurCarGenDuration,
+                   ntcTrmContPurCarGenTxPowerLevel,
+                   ntcTrmContPurCarGenIgnoreFwdLock,
+                   ntcTrmContSelfTestState,
+                   ntcTrmContSelfTestStatus,
+                   ntcTrmContSelfTestStartTime,
+                   ntcTrmContSelfTestLanTest,
+                   ntcTrmContSelfTestLanResult,
+                   ntcTrmContSelfTestTcpSessions,
+                   ntcTrmContSelfTestPhyLayerState,
+                   ntcTrmContSelfTestLnkLayerState,
+                   ntcTrmContSelfTestNetLayerState,
+                   ntcTrmContSelfTestPingTest,
+                   ntcTrmContSelfTestPingResult,
+                   ntcTrmContSelfTestDnsTest,
+                   ntcTrmContSelfTestHttpTest
+               }
+    STATUS      current
+    DESCRIPTION
+        "Managed objects that constitute version 1 of a system device with standard capabilities."
+    ::= { ntcTrmConfGroup 1}
+    
+ntcTrmConfCompV1Standard         MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "Compliance statement for Newtec device MIB implementations."
+    MODULE  -- this module
+    MANDATORY-GROUPS
+                  {
+                      ntcTrmConfGrpV1Standard
+                  }
+    ::= { ntcTrmConfCompliance  1 }
+    
+
+END

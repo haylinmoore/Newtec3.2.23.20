@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo "Content-type: text/plain"
+
+echo ""
+echo "+++++++++++++"  
+echo "+TEST REPORT+" 
+echo "+++++++++++++" 
+echo ""
+    
+/var/www/cgi-bin/gui_short_diagnostic_report
+
+echo ""
+echo "========================================"
+echo -n "The date is: " 
+echo `date`
+echo "Test results:"
+echo ""
+
+/usr/local/bin/cliclient GetTestReport -f RequestData.TestReport
+ 
+ 

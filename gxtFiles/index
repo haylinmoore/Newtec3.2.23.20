@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "Content-Type: text/html"
+echo "Content-Encoding: gzip"
+echo ""
+cat ../kensogui/index.html.gz

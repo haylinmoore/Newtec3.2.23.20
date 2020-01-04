@@ -1,0 +1,102 @@
+#!/bin/sh
+read_cfg() {
+        ntchwid=`sed -n "s/^ntchwid=\(.*\)$/\1/p" /var/state/cfg`
+        ntcserial=`sed -n "s/^ntcserial=\(.*\)$/\1/p" /var/state/cfg`
+        ntccode=`sed -n "s/^ntccode=\(.*\)$/\1/p" /var/state/cfg`
+        ntcpasswd=`sed -n "s/^ntcpasswd=\(.*\)$/\1/p" /var/state/cfg`
+        ntcversion=`sed -n "s/^ntcversion=\(.*\)$/\1/p" /var/state/cfg`
+        firmware_id=`sed -n "s/^firmware_id: \(.*\)$/\1/p" /etc/version`
+        firmware_nbr=`sed -n "s/^firmware_id: \(.*\)$/\1/p" /etc/version | cut -d "." -f 2`
+        config_id=`sed -n "s/^version_uboot_config=\(.*\)$/\1/p" /var/state/cfg`
+        config_nbr=`sed -n "s/^version_uboot_config=\(.*\)$/\1/p" /var/state/cfg | cut -d "." -f 2`
+        airmac=`sed -n "s/^airmac=\(.*\)$/\1/p" /var/state/cfg`
+        prod_plant=`sed -n "s/^prod_plant=\(.*\)$/\1/p" /var/state/cfg`
+        prod_date=`sed -n "s/^prod_date=\(.*\)$/\1/p" /var/state/cfg`
+        prod_serial=`sed -n "s/^prod_serial=\(.*\)$/\1/p" /var/state/cfg`
+        ntcsigvalid=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Authentication.ConfigSignatureValid`
+        pkcertvalid=`/usr/local/bin/cliclient GetDeviceInformation -g RequestData.Authentication.CertificateValid`
+        pcb_version=`sed -n "s/^pcbarev=\(.*\)\.\(.*\)$/\1/p" /var/state/cfg`
+        bom_version=`sed -n "s/^pcbarev=\(.*\)\.\(.*\)$/\2/p" /var/state/cfg`
+}
+
+parse_request() {
+        if [ "$REQUEST_METHOD" = "POST" ]; then
+                if ! read -r request; then
+                        QUERY_STRING="$request"
+                fi
+        fi
+        #  /usr/bin/logger -t www -p user.info "parse_request datafilt=${datafilt}"
+        quiet=$(expr match "$QUERY_STRING" '.*quiet=\([01]\)')
+        passwd=$(expr match "$QUERY_STRING" '.*passwd=\([0-9a-fA-F]*\)')
+        filter=$(expr match "$QUERY_STRING" '.*filter=\([0-9]\)')
+        datafilt=$(expr match "$QUERY_STRING" '.*datafilt=\([0-9a-zA-Z]*\)')
+        if [ -z "$filter" ]; then
+                filter="0"
+        fi
+        last=$(expr match "$QUERY_STRING" '.*last=\([0-9]*\)')
+        if [ -z "$last" ]; then
+                last="0"
+        fi
+        # /usr/bin/logger -t www -p user.info "datafilt=${datafilt}"
+}
+
+
+# Main
+parse_request
+
+# Total misuse of the viewlog functionality, this displays a very short diagnostic report
+echo "Content-type: text/plain"
+echo
+
+# Total misuse of the viewlog functionality, this displays a very short diagnostic report
+read_cfg
+echo -n "name: "
+hostname
+cat /etc/version /var/state/acu_status 2>/dev/null
+config_version=`/usr/local/bin/cliclient GetTmsInformation -g RequestData.Version`
+if [ -n "$config_version" ]; then
+        echo "TMS_config_version: ${config_version}"
+fi
+pci_info=`lspci -d 1172:`
+echo "fpga_pci: ${pci_info}"
+echo "productid: ${ntchwid}.${firmware_nbr}.${config_nbr}"
+echo "UbootConfigId: ${config_id}"
+echo "ntchwid: ${ntchwid}"
+echo "ntcversion: ${ntcversion}"
+echo "ntcserial: ${ntcserial}"
+echo "ntccode: ${ntccode}"
+echo "airmac: ${airmac}"
+if [ -n "$prod_plant" ]; then
+        echo "prod_plant: ${prod_plant}"
+fi
+if [ -n "$prod_date" ]; then
+        echo "prod_date: ${prod_date}"
+fi
+if [ -n "$prod_serial" ]; then
+        echo "prod_serial: ${prod_serial}"
+fi
+if [ -n "$pcb_version" ]; then
+        echo "pcb_version: ${pcb_version}"
+fi
+if [ -n "$bom_version" ]; then
+        echo "bom_revision: R${bom_version}"
+fi
+if [ -n "$ntcsigvalid" ]; then
+        echo "sig_verification: ${ntcsigvalid}" | sed 's/true/ok/g' | sed 's/false/nok/g'
+fi
+if [ -n "$pkcertvalid" ]; then
+        echo "pkcert: ${pkcertvalid}" | sed 's/true/ok/g' | sed 's/false/nok/g'
+fi
+
+echo -n "uptime: "
+cut -d ' ' -f 1 /proc/uptime
+echo -n "date: "
+date -uR
+if [ "$filter" != 0 ]; then
+        echo "log"
+        eval "$lcmd"
+fi
+
+exit 0
+
+

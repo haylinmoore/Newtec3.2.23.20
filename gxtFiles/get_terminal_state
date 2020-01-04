@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo ""
+/usr/local/bin/s3p getstate
